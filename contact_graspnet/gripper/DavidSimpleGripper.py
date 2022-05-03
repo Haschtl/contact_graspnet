@@ -6,11 +6,12 @@ import trimesh
 import trimesh.transformations as tra
 import tensorflow.compat.v1 as tf
 
+
 class DavidSimpleGripper(object):
-    """An object representing a Franka Panda gripper."""
+    """An object representing a Two-Finger gripper using the DAVID hand."""
 
     def __init__(self, q=None, num_contact_points_per_finger=10, root_folder=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))):
-        """Create a Franka Panda parallel-yaw gripper object.
+        """Create a DAVID two-finger parallel-yaw gripper object.
 
         Keyword Arguments:
             q {list of int} -- opening configuration (default: {None})
@@ -26,9 +27,9 @@ class DavidSimpleGripper(object):
 
         self.q = q
         fn_base = os.path.join(
-            root_folder, 'contact_graspnet/gripper_models/panda_gripper/hand.stl')
+            root_folder, 'contact_graspnet/gripper/david_gripper/hand.stl')
         fn_finger = os.path.join(
-            root_folder, 'contact_graspnet/gripper_models/panda_gripper/finger.stl')
+            root_folder, 'contact_graspnet/gripper/david_gripper/finger.stl')
 
         self.base = trimesh.load(fn_base)
         self.finger_l = trimesh.load(fn_finger)
@@ -45,8 +46,7 @@ class DavidSimpleGripper(object):
         self.contact_ray_origins = []
         self.contact_ray_directions = []
 
-        # coords_path = os.path.join(root_folder, 'contact_graspnet/gripper_models/panda_gripper/panda_gripper_coords.npy')
-        with open(os.path.join(root_folder, 'contact_graspnet/gripper_models/panda_gripper/panda_gripper_coords.pickle'), 'rb') as f:
+        with open(os.path.join(root_folder, 'contact_graspnet/gripper/david_gripper/david_gripper_coords.pickle'), 'rb') as f:
             self.finger_coords = pickle.load(f, encoding='latin1')
         finger_direction = self.finger_coords['gripper_right_center_flat'] - \
             self.finger_coords['gripper_left_center_flat']
@@ -94,14 +94,14 @@ class DavidSimpleGripper(object):
         Keyword Arguments:
             use_tf {bool} -- outputing a tf tensor instead of a numpy array (default: {True})
             symmetric {bool} -- Output the symmetric control point configuration of the gripper (default: {False})
-            convex_hull {bool} -- Return control points according to the convex hull panda gripper model (default: {True})
+            convex_hull {bool} -- Return control points according to the convex hull david gripper model (default: {True})
 
         Returns:
-            np.ndarray -- control points of the panda gripper 
+            np.ndarray -- control points of the david two-finger gripper 
         """
 
         control_points = np.load(os.path.join(
-            self.root_folder, 'contact_graspnet/gripper_models/panda_gripper/panda.npy'))[:, :3]
+            self.root_folder, 'contact_graspnet/gripper/david_gripper/david.npy'))[:, :3]
         if symmetric:
             control_points = [[0, 0, 0], control_points[1, :],
                               control_points[0, :], control_points[-1, :], control_points[-2, :]]

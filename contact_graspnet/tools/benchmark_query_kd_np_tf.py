@@ -17,53 +17,61 @@ kd_query_time = []
 tf_time = []
 tf_pointnet_time = []
 
+
 @tf.function
 def tf_nn(x):
-    dists = tf.norm(tf.expand_dims(x,0)-tf.expand_dims(x,1),axis=2)
-    _,topk = tf.math.top_k(dists, k=k, sorted=False)
+    dists = tf.norm(tf.expand_dims(x, 0)-tf.expand_dims(x, 1), axis=2)
+    _, topk = tf.math.top_k(dists, k=k, sorted=False)
     return topk
 
 # np.random.randint*
+
+
 @tf.function
 def tf_queryball(x):
-    dists = tf.norm(tf.expand_dims(x,0)-tf.expand_dims(x,1),axis=2)
+    dists = tf.norm(tf.expand_dims(x, 0)-tf.expand_dims(x, 1), axis=2)
     queries = tf.math.less(dists, radius)
     idcs = tf.where(queries)
     return idcs
     # _,topk = tf.math.top_k(dists, k=k, sorted=False)
     # return topk
 
+
 @tf.function
 def tf_knn_max_dist(x):
-    
-    squared_dists_all = tf.norm(tf.expand_dims(x,0)-tf.expand_dims(x,1),axis=2)#tf.reduce_sum((tf.expand_dims(x,0)-tf.expand_dims(x,1))**2,axis=2)
-    neg_squared_dists_k, close_contact_pt_idcs = tf.math.top_k(-squared_dists_all, k=k, sorted=False)
+
+    # tf.reduce_sum((tf.expand_dims(x,0)-tf.expand_dims(x,1))**2,axis=2)
+    squared_dists_all = tf.norm(tf.expand_dims(
+        x, 0)-tf.expand_dims(x, 1), axis=2)
+    neg_squared_dists_k, close_contact_pt_idcs = tf.math.top_k(
+        -squared_dists_all, k=k, sorted=False)
     squared_dists_k = -neg_squared_dists_k
-    loss_mask_pc = tf.cast(tf.reduce_mean(squared_dists_k, axis=1) < radius**2, tf.float32)
+    loss_mask_pc = tf.cast(tf.reduce_mean(
+        squared_dists_k, axis=1) < radius**2, tf.float32)
     return loss_mask_pc
 
+
 # warmup tf
-a=np.random.rand(N,dim).astype(np.float32)
+a = np.random.rand(N, dim).astype(np.float32)
 tf_queryball(a)
 # tf_pointnet(a)
 tf_knn_max_dist(a)
 
 for i in tqdm(range(10)):
-    a=np.random.rand(N,dim).astype(np.float32)
+    a = np.random.rand(N, dim).astype(np.float32)
 
     # start_time_tf = time.time()
     # tf_time.append(time.time()-start_time_tf)
     start_time_tf = time.time()
-    f= tf_nn(a)
+    f = tf_nn(a)
     tf_time.append(time.time()-start_time_tf)
-    
-    
+
     start_time_tf = time.time()
     tf_queryball(a)
     tf_pointnet_time.append(time.time()-start_time_tf)
 
     start_time_np = time.time()
-    d=np.linalg.norm(a[np.newaxis,:,:]-a[:,np.newaxis,:],axis=2)
+    d = np.linalg.norm(a[np.newaxis, :, :]-a[:, np.newaxis, :], axis=2)
     np_matmul_time.append(time.time() - start_time_np)
     start_time_np = time.time()
     sorted = np.argpartition(d, k, axis=1)
@@ -82,7 +90,7 @@ print('np_sort_time: ', np.mean(np_sort_time))
 print('kd_build_time: ', np.mean(kd_build_time))
 print('kd_query_time: ', np.mean(kd_query_time))
 print('#'*100)
-print('np_brute: ', np.mean(np_sort_time) +  np.mean(np_matmul_time))
+print('np_brute: ', np.mean(np_sort_time) + np.mean(np_matmul_time))
 print('tf_brute: ', np.mean(tf_time))
 print('tf_pointnet: ', np.mean(tf_pointnet_time))
 print('kd: ', np.mean(kd_build_time) + np.mean(kd_query_time))

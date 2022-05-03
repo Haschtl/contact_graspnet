@@ -12,6 +12,7 @@ from acronym_tools import Scene, load_mesh, create_gripper_marker
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 def load_contacts(root_folder, data_splits, splits=['train'], min_pos_contacts=1):
     """
     Load grasps and contacts into memory
@@ -31,12 +32,13 @@ def load_contacts(root_folder, data_splits, splits=['train'], min_pos_contacts=1
     for category_paths in data_splits.values():
         for split in splits:
             for grasp_path in category_paths[split]:
-                contact_path = os.path.join(root_folder, 'mesh_contacts', grasp_path.replace('.h5','.npz'))
+                contact_path = os.path.join(
+                    root_folder, 'mesh_contacts', grasp_path.replace('.h5', '.npz'))
                 if os.path.exists(contact_path):
                     npz = np.load(contact_path)
                     if 'contact_points' in npz:
                         all_contact_suc = npz['successful'].reshape(-1)
-                        pos_idcs = np.where(all_contact_suc>0)[0]
+                        pos_idcs = np.where(all_contact_suc > 0)[0]
                         if len(pos_idcs) > min_pos_contacts:
                             contact_infos[grasp_path] = {}
                             contact_infos[grasp_path]['successful'] = npz['successful']
@@ -45,6 +47,7 @@ def load_contacts(root_folder, data_splits, splits=['train'], min_pos_contacts=1
     if not contact_infos:
         print('Warning: No mesh_contacts found. Please run contact_graspnet/tools/create_contact_infos.py first!')
     return contact_infos
+
 
 def load_splits(root_folder):
     """
@@ -60,11 +63,14 @@ def load_splits(root_folder):
     split_paths = glob.glob(os.path.join(root_folder, 'splits/*.json'))
     for split_p in split_paths:
         category = os.path.basename(split_p).split('.json')[0]
-        splits = json.load(open(split_p,'r'))
+        splits = json.load(open(split_p, 'r'))
         split_dict[category] = {}
-        split_dict[category]['train'] = [obj_p.replace('.json', '.h5') for obj_p in splits['train']]
-        split_dict[category]['test'] = [obj_p.replace('.json', '.h5') for obj_p in splits['test']]
+        split_dict[category]['train'] = [obj_p.replace(
+            '.json', '.h5') for obj_p in splits['train']]
+        split_dict[category]['test'] = [obj_p.replace(
+            '.json', '.h5') for obj_p in splits['test']]
     return split_dict
+
 
 class TableScene(Scene):
     """
@@ -79,10 +85,10 @@ class TableScene(Scene):
     """
 
     def __init__(self, root_folder, gripper_path, lower_table=0.02, splits=['train']):
-        
+
         super().__init__()
         self.root_folder = root_folder
-        self.splits= splits
+        self.splits = splits
         self.gripper_mesh = trimesh.load(os.path.join(BASE_DIR, gripper_path))
 
         self._table_dims = [1.0, 1.2, 0.6]
@@ -93,35 +99,37 @@ class TableScene(Scene):
 
         self.data_splits = load_splits(root_folder)
         self.category_list = list(self.data_splits.keys())
-        self.contact_infos = load_contacts(root_folder, self.data_splits, splits=self.splits)
-        
+        self.contact_infos = load_contacts(
+            root_folder, self.data_splits, splits=self.splits)
+
         self._lower_table = lower_table
-    
+
         self._scene_count = 0
-        
+
     def get_random_object(self):
-        
         """Return random scaled but not yet centered object mesh
 
         Returns:
             [trimesh.Trimesh, str] -- ShapeNet mesh from a random category, h5 file path
         """
-        
+
         while True:
             random_category = random.choice(self.category_list)
-            cat_obj_paths = [obj_p for split in self.splits for obj_p in self.data_splits[random_category][split]]
+            cat_obj_paths = [
+                obj_p for split in self.splits for obj_p in self.data_splits[random_category][split]]
             if cat_obj_paths:
                 random_grasp_path = random.choice(cat_obj_paths)
                 if random_grasp_path in self.contact_infos:
                     break
-        
-        obj_mesh = load_mesh(os.path.join(self.root_folder, 'grasps', random_grasp_path), self.root_folder)
-        
-        mesh_mean =  np.mean(obj_mesh.vertices, 0, keepdims=True)
+
+        obj_mesh = load_mesh(os.path.join(
+            self.root_folder, 'grasps', random_grasp_path), self.root_folder)
+
+        mesh_mean = np.mean(obj_mesh.vertices, 0, keepdims=True)
         obj_mesh.vertices -= mesh_mean
-        
+
         return obj_mesh, random_grasp_path
-    
+
     def _get_random_stable_pose(self, stable_poses, stable_poses_probs, thres=0.005):
         """Return a stable pose according to their likelihood.
 
@@ -133,21 +141,21 @@ class TableScene(Scene):
         Returns:
             np.ndarray: homogeneous 4x4 matrix
         """
-        
-        
+
         # Random pose with unique (avoid symmetric poses) stability prob > thres
-        _,unique_idcs = np.unique(stable_poses_probs.round(decimals=3), return_index=True)
+        _, unique_idcs = np.unique(
+            stable_poses_probs.round(decimals=3), return_index=True)
         unique_idcs = unique_idcs[::-1]
         unique_stable_poses_probs = stable_poses_probs[unique_idcs]
-        n = len(unique_stable_poses_probs[unique_stable_poses_probs>thres])
+        n = len(unique_stable_poses_probs[unique_stable_poses_probs > thres])
         index = unique_idcs[np.random.randint(n)]
-            
+
         # index = np.random.choice(len(stable_poses), p=stable_poses_probs)
         inplane_rot = tra.rotation_matrix(
             angle=np.random.uniform(0, 2.0 * np.pi), direction=[0, 0, 1]
         )
         return inplane_rot.dot(stable_poses[index])
-    
+
     def find_object_placement(self, obj_mesh, max_iter):
         """Try to find a non-colliding stable pose on top of any support surface.
 
@@ -175,7 +183,8 @@ class TableScene(Scene):
         # stable_poses, stable_poses_probs = obj_mesh.compute_stable_poses(threshold=0, sigma=0, n_samples=1)
 
         # Sample support index
-        support_index = max(enumerate(support_polys), key=lambda x: x[1].area)[0]
+        support_index = max(enumerate(support_polys),
+                            key=lambda x: x[1].area)[0]
 
         iter = 0
         colliding = True
@@ -195,10 +204,12 @@ class TableScene(Scene):
                 trimesh.transformations.translation_matrix(pts3d),
             )
 
-            pose = self._get_random_stable_pose(stable_poses, stable_poses_probs)
+            pose = self._get_random_stable_pose(
+                stable_poses, stable_poses_probs)
 
             placement_T = np.dot(
-                np.dot(placement_T, pose), tra.translation_matrix(-obj_mesh.center_mass)
+                np.dot(placement_T,
+                       pose), tra.translation_matrix(-obj_mesh.center_mass)
             )
 
             # Check collisions
@@ -222,9 +233,10 @@ class TableScene(Scene):
         Returns:
             [bool] -- colliding or not
         """
-        dist = self.collision_manager.min_distance_single(mesh, transform=transform)
+        dist = self.collision_manager.min_distance_single(
+            mesh, transform=transform)
         return dist < eps
-    
+
     def load_suc_obj_contact_grasps(self, grasp_path):
         """
         Loads successful object grasp contacts
@@ -236,14 +248,14 @@ class TableScene(Scene):
             [np.ndarray, np.ndarray] -- Mx4x4 grasp transforms, Mx3 grasp contacts
         """
         contact_info = self.contact_infos[grasp_path]
-        
+
         suc_grasps = contact_info['successful'].reshape(-1)
-        gt_grasps = contact_info['grasp_transform'].reshape(-1,4,4)
-        gt_contacts = contact_info['contact_points'].reshape(-1,3)
-        
-        suc_gt_contacts = gt_contacts[np.repeat(suc_grasps,2)>0]
-        suc_gt_grasps = gt_grasps[suc_grasps>0]
-        
+        gt_grasps = contact_info['grasp_transform'].reshape(-1, 4, 4)
+        gt_contacts = contact_info['contact_points'].reshape(-1, 3)
+
+        suc_gt_contacts = gt_contacts[np.repeat(suc_grasps, 2) > 0]
+        suc_gt_grasps = gt_grasps[suc_grasps > 0]
+
         return suc_gt_grasps, suc_gt_contacts
 
     def set_mesh_transform(self, name, transform):
@@ -256,7 +268,7 @@ class TableScene(Scene):
         """
         self.collision_manager.set_transform(name, transform)
         self._poses[name] = transform
-    
+
     def save_scene_grasps(self, output_dir, scene_filtered_grasps, scene_filtered_contacts, obj_paths, obj_transforms, obj_scales, obj_grasp_idcs):
         """
         Save scene_contact infos in output_dir
@@ -280,13 +292,15 @@ class TableScene(Scene):
         contact_info['grasp_transforms'] = scene_filtered_grasps
         contact_info['scene_contact_points'] = scene_filtered_contacts
         contact_info['obj_grasp_idcs'] = np.array(obj_grasp_idcs)
-        output_path = os.path.join(output_dir, '{:06d}.npz'.format(self._scene_count))
+        output_path = os.path.join(
+            output_dir, '{:06d}.npz'.format(self._scene_count))
         while os.path.exists(output_path):
             self._scene_count += 1
-            output_path = os.path.join(output_dir, '{:06d}.npz'.format(self._scene_count))
+            output_path = os.path.join(
+                output_dir, '{:06d}.npz'.format(self._scene_count))
         np.savez(output_path, **contact_info)
         self._scene_count += 1
-        
+
     def _transform_grasps(self, grasps, contacts, obj_transform):
         """
         Transform grasps and contacts into given object transform
@@ -300,8 +314,9 @@ class TableScene(Scene):
             [np.ndarray, np.ndarray] -- transformed grasps and contacts
         """
         transformed_grasps = np.matmul(obj_transform, grasps)
-        contacts_homog = np.concatenate((contacts, np.ones((contacts.shape[0], 1))),axis=1)
-        transformed_contacts = np.dot(contacts_homog, obj_transform.T)[:,:3]
+        contacts_homog = np.concatenate(
+            (contacts, np.ones((contacts.shape[0], 1))), axis=1)
+        transformed_contacts = np.dot(contacts_homog, obj_transform.T)[:, :3]
         return transformed_grasps, transformed_contacts
 
     def _filter_colliding_grasps(self, transformed_grasps, transformed_contacts):
@@ -317,12 +332,12 @@ class TableScene(Scene):
         """
         filtered_grasps = []
         filtered_contacts = []
-        for i,g in enumerate(transformed_grasps):
+        for i, g in enumerate(transformed_grasps):
             if not self.is_colliding(self.gripper_mesh, g):
                 filtered_grasps.append(g)
                 filtered_contacts.append(transformed_contacts[2*i:2*(i+1)])
-        return np.array(filtered_grasps).reshape(-1,4,4), np.array(filtered_contacts).reshape(-1,2,3)
-    
+        return np.array(filtered_grasps).reshape(-1, 4, 4), np.array(filtered_contacts).reshape(-1, 2, 3)
+
     def reset(self):
         """
         Reset, i.e. remove scene objects
@@ -332,7 +347,7 @@ class TableScene(Scene):
         self._objects = {}
         self._poses = {}
         self._support_objects = []
-    
+
     def load_existing_scene(self, path):
         """
         Load an existing scene_contacts scene for visualization
@@ -344,7 +359,7 @@ class TableScene(Scene):
             [np.ndarray, list, list] -- scene_grasps, list of obj paths, list of object transforms
         """
         self.add_object('table', self.table_mesh, self._table_pose)
-        self._support_objects.append(self.table_support)        
+        self._support_objects.append(self.table_support)
 
         inp = np.load(os.path.join(self.root_folder, path))
         scene_filtered_grasps = inp['grasp_transforms']
@@ -353,19 +368,18 @@ class TableScene(Scene):
         obj_paths = inp['obj_paths']
         obj_scales = inp['obj_scales']
 
-        for obj_path,obj_transform,obj_scale in zip(obj_paths,obj_transforms,obj_scales):
+        for obj_path, obj_transform, obj_scale in zip(obj_paths, obj_transforms, obj_scales):
             obj_mesh = trimesh.load(os.path.join(self.root_folder, obj_path))
             obj_mesh = obj_mesh.apply_scale(obj_scale)
-            mesh_mean =  np.mean(obj_mesh.vertices, 0, keepdims=True)
+            mesh_mean = np.mean(obj_mesh.vertices, 0, keepdims=True)
             obj_mesh.vertices -= mesh_mean
             self.add_object(obj_path, obj_mesh, obj_transform)
         return scene_filtered_grasps, scene_contacts, obj_paths, obj_transforms
-    
-    
+
     def handler(self, signum, frame):
         raise Exception("Could not place object ")
-        
-    def arrange(self, num_obj, max_iter=100, time_out = 8):
+
+    def arrange(self, num_obj, max_iter=100, time_out=8):
         """
         Arrange random table top scene with contact grasp annotations
 
@@ -382,34 +396,39 @@ class TableScene(Scene):
 
         """
 
-        self._table_pose[2,3] -= self._lower_table
-        self.add_object('table', self.table_mesh, self._table_pose)       
-        
-        self._support_objects.append(self.table_support)    
+        self._table_pose[2, 3] -= self._lower_table
+        self.add_object('table', self.table_mesh, self._table_pose)
+
+        self._support_objects.append(self.table_support)
 
         obj_paths = []
         obj_transforms = []
         obj_scales = []
         grasp_paths = []
-        
+
         for i in range(num_obj):
             obj_mesh, random_grasp_path = self.get_random_object()
             signal.signal(signal.SIGALRM, self.handler)
             signal.alarm(8)
             try:
-                success, placement_T = self.find_object_placement(obj_mesh, max_iter)
-            except Exception as exc: 
-                print(exc, random_grasp_path, " after {} seconds!".format(time_out))
+                success, placement_T = self.find_object_placement(
+                    obj_mesh, max_iter)
+            except Exception as exc:
+                print(exc, random_grasp_path,
+                      " after {} seconds!".format(time_out))
                 continue
             signal.alarm(0)
             if success:
                 self.add_object(random_grasp_path, obj_mesh, placement_T)
-                obj_scales.append(float(random_grasp_path.split('_')[-1].split('.h5')[0]))
-                obj_paths.append(os.path.join('meshes', '/'.join(random_grasp_path.split('_')[:2]) + '.obj'))
+                obj_scales.append(
+                    float(random_grasp_path.split('_')[-1].split('.h5')[0]))
+                obj_paths.append(os.path.join(
+                    'meshes', '/'.join(random_grasp_path.split('_')[:2]) + '.obj'))
                 obj_transforms.append(placement_T)
                 grasp_paths.append(random_grasp_path)
             else:
-                print("Couldn't place object", random_grasp_path, " after {} iterations!".format(max_iter))
+                print("Couldn't place object", random_grasp_path,
+                      " after {} iterations!".format(max_iter))
         print('Placed {} objects'.format(len(obj_paths)))
 
         # self.set_mesh_transform('table', self._table_pose)
@@ -418,25 +437,27 @@ class TableScene(Scene):
         scene_filtered_contacts = []
         obj_grasp_idcs = []
         grasp_count = 0
-        
+
         for obj_transform, grasp_path in zip(obj_transforms, grasp_paths):
             grasps, contacts = self.load_suc_obj_contact_grasps(grasp_path)
-            transformed_grasps, transformed_contacts = self._transform_grasps(grasps, contacts, obj_transform)
-            filtered_grasps, filtered_contacts = self._filter_colliding_grasps(transformed_grasps, transformed_contacts)
-            
+            transformed_grasps, transformed_contacts = self._transform_grasps(
+                grasps, contacts, obj_transform)
+            filtered_grasps, filtered_contacts = self._filter_colliding_grasps(
+                transformed_grasps, transformed_contacts)
+
             scene_filtered_grasps.append(filtered_grasps)
             scene_filtered_contacts.append(filtered_contacts)
             grasp_count += len(filtered_contacts)
             obj_grasp_idcs.append(grasp_count)
 
-        scene_filtered_grasps = np.concatenate(scene_filtered_grasps,0)
-        scene_filtered_contacts = np.concatenate(scene_filtered_contacts,0)
-        
-        self._table_pose[2,3] += self._lower_table
+        scene_filtered_grasps = np.concatenate(scene_filtered_grasps, 0)
+        scene_filtered_contacts = np.concatenate(scene_filtered_contacts, 0)
+
+        self._table_pose[2, 3] += self._lower_table
         self.set_mesh_transform('table', self._table_pose)
 
         return scene_filtered_grasps, scene_filtered_contacts, obj_paths, obj_transforms, obj_scales, obj_grasp_idcs
-        
+
     def visualize(self, scene_grasps, scene_contacts=None):
         """
         Visualizes table top scene with grasps
@@ -446,28 +467,33 @@ class TableScene(Scene):
             scene_contacts {np.ndarray} -- Nx2x3 grasp contacts
         """
         print('Visualizing scene and grasps.. takes time')
-        
+
         gripper_marker = create_gripper_marker(color=[0, 255, 0])
-        gripper_markers = [gripper_marker.copy().apply_transform(t) for t in scene_grasps]
-        
-        colors = np.ones((scene_contacts.shape[0]*2,4))*255
-        colors[:,0:2] = 0
-        scene_contact_scene = trimesh.Scene(trimesh.points.PointCloud(scene_contacts.reshape(-1,3), colors=colors))
-        
+        gripper_markers = [gripper_marker.copy().apply_transform(t)
+                           for t in scene_grasps]
+
+        colors = np.ones((scene_contacts.shape[0]*2, 4))*255
+        colors[:, 0:2] = 0
+        scene_contact_scene = trimesh.Scene(trimesh.points.PointCloud(
+            scene_contacts.reshape(-1, 3), colors=colors))
+
         # show scene together with successful and collision-free grasps of all objects
         trimesh.scene.scene.append_scenes(
-            [self.colorize().as_trimesh_scene(), trimesh.Scene(gripper_markers), scene_contact_scene]
+            [self.colorize().as_trimesh_scene(), trimesh.Scene(
+                gripper_markers), scene_contact_scene]
         ).show()
-        
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Grasp data reader")
-    parser.add_argument('root_folder', help='Root dir with grasps, meshes, mesh_contacts and splits', type=str)
+    parser.add_argument(
+        'root_folder', help='Root dir with grasps, meshes, mesh_contacts and splits', type=str)
     parser.add_argument('--num_grasp_scenes', type=int, default=10000)
-    parser.add_argument('--splits','--list', nargs='+')
+    parser.add_argument('--splits', '--list', nargs='+')
     parser.add_argument('--max_iterations', type=int, default=100)
     parser.add_argument('--gripper_path', type=str,
-                        default='contact_graspnet/gripper_models/panda_gripper/panda_gripper.obj')
+                        default='contact_graspnet/gripper/panda/panda_gripper.obj')
     parser.add_argument('--min_num_objects', type=int, default=8)
     parser.add_argument('--max_num_objects', type=int, default=12)
     parser.add_argument('--start_index', type=int, default=0)
@@ -495,18 +521,22 @@ if __name__ == "__main__":
     output_dir = os.path.join(root_folder, output_dir)
 
     while table_scene._scene_count < number_of_scenes:
-        
+
         table_scene.reset()
-                
+
         if load_existing is None:
-            print('generating %s/%s' % (table_scene._scene_count, number_of_scenes))
-            num_objects = np.random.randint(min_num_objects,max_num_objects+1)
-            scene_grasps, scene_contacts, obj_paths, obj_transforms, obj_scales, obj_grasp_idcs = table_scene.arrange(num_objects, max_iterations)
+            print('generating %s/%s' %
+                  (table_scene._scene_count, number_of_scenes))
+            num_objects = np.random.randint(min_num_objects, max_num_objects+1)
+            scene_grasps, scene_contacts, obj_paths, obj_transforms, obj_scales, obj_grasp_idcs = table_scene.arrange(
+                num_objects, max_iterations)
             if not visualize:
-                table_scene.save_scene_grasps(output_dir, scene_grasps, scene_contacts, obj_paths, obj_transforms, obj_scales, obj_grasp_idcs)
+                table_scene.save_scene_grasps(
+                    output_dir, scene_grasps, scene_contacts, obj_paths, obj_transforms, obj_scales, obj_grasp_idcs)
         else:
-            scene_grasps,scene_contacts, _,_ = table_scene.load_existing_scene(load_existing)
-            
+            scene_grasps, scene_contacts, _, _ = table_scene.load_existing_scene(
+                load_existing)
+
         if visualize:
             table_scene.visualize(scene_grasps, scene_contacts)
-            table_scene._scene_count +=1
+            table_scene._scene_count += 1

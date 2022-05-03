@@ -4,39 +4,39 @@ DATA:
   input_normals: false
   use_uniform_quaternions: False
   view_sphere:
-    elevation: [30,150]
-    distance_range: [0.9,1.3]
+    elevation: [30, 150]
+    distance_range: [0.9, 1.3]
   train_on_scenes: True
   labels:
     to_gpu: False
     bin_weights:
-    - 0.16652107
-    - 0.21488856
-    - 0.37031708
-    - 0.55618503
-    - 0.75124664
-    - 0.93943357
-    - 1.07824539
-    - 1.19423112
-    - 1.55731375
-    - 3.17161779
+      - 0.16652107
+      - 0.21488856
+      - 0.37031708
+      - 0.55618503
+      - 0.75124664
+      - 0.93943357
+      - 1.07824539
+      - 1.19423112
+      - 1.55731375
+      - 3.17161779
     filter_z: true
     k: 1
     max_radius: 0.005
     num_neg_contacts: 0
     num_pos_contacts: 8000
     offset_bins:
-    - 0
-    - 0.00794435329
-    - 0.0158887021
-    - 0.0238330509
-    - 0.0317773996
-    - 0.0397217484
-    - 0.0476660972
-    - 0.055610446
-    - 0.0635547948
-    - 0.0714991435
-    - 0.08
+      - 0
+      - 0.00794435329
+      - 0.0158887021
+      - 0.0238330509
+      - 0.0317773996
+      - 0.0397217484
+      - 0.0476660972
+      - 0.055610446
+      - 0.0635547948
+      - 0.0714991435
+      - 0.08
     z_val: -0.1
   pc_augm:
     occlusion_nclusters: 0
@@ -53,7 +53,7 @@ DATA:
   use_farthest_point: false
   train_and_test: false
   num_test_scenes: 1000
-  intrinsics: 'realsense'
+  intrinsics: "realsense"
 LOSS:
   min_geom_loss_divisor: 1.0
   offset_loss_type: sigmoid_cross_entropy
@@ -75,80 +75,80 @@ MODEL:
   asymmetric_model: true
   model: contact_graspnet
   pointnet_fp_modules:
-  - mlp:
-    - 256
-    - 256
-  - mlp:
-    - 256
-    - 128
-  - mlp:
-    - 128
-    - 128
-    - 128
+    - mlp:
+        - 256
+        - 256
+    - mlp:
+        - 256
+        - 128
+    - mlp:
+        - 128
+        - 128
+        - 128
   pointnet_sa_module:
     group_all: true
     mlp:
-    - 256
-    - 512
-    - 1024
+      - 256
+      - 512
+      - 1024
   pointnet_sa_modules_msg:
-  - mlp_list:
-    - - 32
-      - 32
-      - 64
-    - - 64
-      - 64
-      - 128
-    - - 64
-      - 96
-      - 128
-    npoint: 2048
-    nsample_list:
-    - 32
-    - 64
-    - 128
-    radius_list:
-    - 0.02
-    - 0.04
-    - 0.08
-  - mlp_list:
-    - - 64
-      - 64
-      - 128
-    - - 128
-      - 128
-      - 256
-    - - 128
-      - 128
-      - 256
-    npoint: 512
-    nsample_list:
-    - 64
-    - 64
-    - 128
-    radius_list:
-    - 0.04
-    - 0.08
-    - 0.16
-  - mlp_list:
-    - - 64
-      - 64
-      - 128
-    - - 128
-      - 128
-      - 256
-    - - 128
-      - 128
-      - 256
-    npoint: 128
-    nsample_list:
-    - 64
-    - 64
-    - 128
-    radius_list:
-    - 0.08
-    - 0.16
-    - 0.32
+    - mlp_list:
+        - - 32
+          - 32
+          - 64
+        - - 64
+          - 64
+          - 128
+        - - 64
+          - 96
+          - 128
+      npoint: 2048
+      nsample_list:
+        - 32
+        - 64
+        - 128
+      radius_list:
+        - 0.02
+        - 0.04
+        - 0.08
+    - mlp_list:
+        - - 64
+          - 64
+          - 128
+        - - 128
+          - 128
+          - 256
+        - - 128
+          - 128
+          - 256
+      npoint: 512
+      nsample_list:
+        - 64
+        - 64
+        - 128
+      radius_list:
+        - 0.04
+        - 0.08
+        - 0.16
+    - mlp_list:
+        - - 64
+          - 64
+          - 128
+        - - 128
+          - 128
+          - 256
+        - - 128
+          - 128
+          - 256
+      npoint: 128
+      nsample_list:
+        - 64
+        - 64
+        - 128
+      radius_list:
+        - 0.08
+        - 0.16
+        - 0.32
   pred_contact_approach: false
   pred_contact_base: false
   pred_contact_offset: true

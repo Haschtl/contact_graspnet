@@ -6,6 +6,7 @@ import trimesh
 import trimesh.transformations as tra
 import tensorflow.compat.v1 as tf
 
+
 class PandaGripper(object):
     """An object representing a Franka Panda gripper."""
 
@@ -26,9 +27,9 @@ class PandaGripper(object):
 
         self.q = q
         fn_base = os.path.join(
-            root_folder, 'contact_graspnet/gripper_models/panda_gripper/hand.stl')
+            root_folder, 'contact_graspnet/gripper/panda/hand.stl')
         fn_finger = os.path.join(
-            root_folder, 'contact_graspnet/gripper_models/panda_gripper/finger.stl')
+            root_folder, 'contact_graspnet/gripper/panda/finger.stl')
 
         self.base = trimesh.load(fn_base)
         self.finger_l = trimesh.load(fn_finger)
@@ -45,8 +46,8 @@ class PandaGripper(object):
         self.contact_ray_origins = []
         self.contact_ray_directions = []
 
-        # coords_path = os.path.join(root_folder, 'contact_graspnet/gripper_models/panda_gripper/panda_gripper_coords.npy')
-        with open(os.path.join(root_folder, 'contact_graspnet/gripper_models/panda_gripper/panda_gripper_coords.pickle'), 'rb') as f:
+        # coords_path = os.path.join(root_folder, 'contact_graspnet/gripper/panda/panda_gripper_coords.npy')
+        with open(os.path.join(root_folder, 'contact_graspnet/gripper/panda/panda_gripper_coords.pickle'), 'rb') as f:
             self.finger_coords = pickle.load(f, encoding='latin1')
         finger_direction = self.finger_coords['gripper_right_center_flat'] - \
             self.finger_coords['gripper_left_center_flat']
@@ -101,7 +102,7 @@ class PandaGripper(object):
         """
 
         control_points = np.load(os.path.join(
-            self.root_folder, 'contact_graspnet/gripper_models/panda_gripper/panda.npy'))[:, :3]
+            self.root_folder, 'contact_graspnet/gripper/panda/panda.npy'))[:, :3]
         if symmetric:
             control_points = [[0, 0, 0], control_points[1, :],
                               control_points[0, :], control_points[-1, :], control_points[-2, :]]
