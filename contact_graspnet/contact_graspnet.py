@@ -231,7 +231,7 @@ def build_6d_grasp(approach_dirs, base_dirs, contact_pts, thickness, use_tf=Fals
 
     return grasps
 
-def get_losses(pointclouds_pl, end_points, dir_labels_pc_cam, offset_labels_pc, grasp_success_labels_pc, approach_labels_pc_cam, global_config):
+def get_losses(pointclouds_pl, end_points, dir_labels_pc_cam, offset_labels_pc, grasp_success_labels_pc, approach_labels_pc_cam, global_config,gripper_name="panda"):
     """
     Computes loss terms from pointclouds, network predictions and labels 
 
@@ -243,6 +243,7 @@ def get_losses(pointclouds_pl, end_points, dir_labels_pc_cam, offset_labels_pc, 
         grasp_success_labels_pc {tf.variable} -- contact success labels (bxNx1) 
         approach_labels_pc_cam {tf.variable} -- approach direction labels in camera coordinates (bxNx3)
         global_config {dict} -- config dict 
+        gripper_name {str} -- Name of the gripper to use. Default: "panda"
         
     Returns:
         [dir_cosine_loss, bin_ce_loss, offset_loss, approach_cosine_loss, adds_loss, 
@@ -271,7 +272,7 @@ def get_losses(pointclouds_pl, end_points, dir_labels_pc_cam, offset_labels_pc, 
     pos_gt_grasps_proj = tf.where(tf.broadcast_to(tf.expand_dims(tf.expand_dims(tf.cast(grasp_success_labels_pc, tf.bool),2),3), gt_grasps_proj.shape), gt_grasps_proj, tf.ones_like(gt_grasps_proj)*100000)
     # pos_gt_grasps_proj = tf.reshape(pos_gt_grasps_proj, (global_config['OPTIMIZER']['batch_size'], -1, 4, 4)) 
 
-    gripper = mesh_utils.create_gripper('panda')
+    gripper = mesh_utils.create_gripper(gripper_name)
     gripper_control_points = gripper.get_control_point_tensor(global_config['OPTIMIZER']['batch_size']) # b x 5 x 3
     sym_gripper_control_points = gripper.get_control_point_tensor(global_config['OPTIMIZER']['batch_size'], symmetric=True)
 

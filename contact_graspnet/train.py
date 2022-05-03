@@ -27,13 +27,14 @@ from summaries import build_summary_ops, build_file_writers
 from tf_train_ops import load_labels_and_losses, build_train_op
 from contact_grasp_estimator import GraspEstimator
 
-def train(global_config, log_dir):
+def train(global_config, log_dir,gripper_name="panda"):
     """
     Trains Contact-GraspNet
 
     Arguments:
         global_config {dict} -- config dict
         log_dir {str} -- Checkpoint directory
+        gripper_name {str} - - Name of the gripper to use. Default: "panda"
     """
 
     contact_infos = load_scene_contacts(global_config['DATA']['data_path'],
@@ -75,7 +76,7 @@ def train(global_config, log_dir):
         
         # contact_tensors = load_contact_grasps(contact_infos, global_config['DATA'])
         
-        loss_ops = load_labels_and_losses(grasp_estimator, contact_infos, global_config)
+        loss_ops = load_labels_and_losses(grasp_estimator, contact_infos, global_config,True,gripper_name)
 
         ops.update(loss_ops)
         ops['train_op'] = build_train_op(ops['loss'], ops['step'], global_config)
@@ -192,6 +193,8 @@ if __name__ == "__main__":
     parser.add_argument('--max_epoch', type=int, default=None, help='Epochs to run')
     parser.add_argument('--batch_size', type=int, default=None, help='Batch Size during training')
     parser.add_argument('--arg_configs', nargs="*", type=str, default=[], help='overwrite config parameters')
+    parser.add_argument(
+        '--gripper', help='Gripper-name, e.g. "panda"', type=str, default="panda")
     FLAGS = parser.parse_args()
 
     ckpt_dir = FLAGS.ckpt_dir
@@ -217,6 +220,6 @@ if __name__ == "__main__":
     log_string(str(global_config))
     log_string('pid: %s'%(str(os.getpid())))
 
-    train(global_config, ckpt_dir)
+    train(global_config, ckpt_dir,gripper_name=FLAGS.gripper)
 
     LOG_FOUT.close()

@@ -11,13 +11,15 @@ sys.path.append(ROOT_DIR)
 from contact_graspnet.data import PointCloudReader
 from contact_graspnet.mesh_utils import in_collision_with_gripper, grasp_contact_location
 
-def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, check_collisions=True):
+
+def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, gripper_name, check_collisions=True):
     """
     Check the collision of the grasps and compute contact points, normals and directions
 
     Arguments:
         grasp_tfs {np.ndarray} -- Mx4x4 grasp transformations
         successfuls {np.ndarray} -- Binary Mx1 successful grasps
+        gripper_name {str} -- Name of the gripper to use
         obj_mesh {trimesh.base.Trimesh} -- Mesh of the object
 
     Keyword Arguments:
@@ -31,7 +33,7 @@ def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, check_collisions=True)
         collisions, _ = in_collision_with_gripper(
             obj_mesh,
             grasp_tfs,
-            gripper_name='panda',
+            gripper_name=gripper_name,
             silent=True,
         )
     contact_dicts = grasp_contact_location(
@@ -39,7 +41,7 @@ def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, check_collisions=True)
         successfuls,
         collisions if check_collisions else [0]*len(successfuls),
         object_mesh=obj_mesh,
-        gripper_name='panda',
+        gripper_name=gripper_name,
         silent=True,
     )
 
@@ -71,13 +73,16 @@ def read_object_grasp_data_acronym(root_folder, h5_path):
 
     return grasps, success, mesh_fname, mesh_scale
 
-def save_contact_data(pcreader, grasp_path, target_path='mesh_contacts'):
+
+def save_contact_data(pcreader, grasp_path, gripper_name, target_path='mesh_contacts'):
     """
     Maps acronym grasp data to contact information on meshes and saves them as npz file
 
     Arguments:
         grasp_path {str} -- path to grasp json file 
         pcreader {Object} -- PointCloudReader instance from data.py 
+        gripper_name {str} -- Name of the gripper to use
+        target_path {str} -- Output path
 
     """
 
@@ -99,7 +104,7 @@ def save_contact_data(pcreader, grasp_path, target_path='mesh_contacts'):
     obj_mesh_mean = context['mesh_mean']
 
     output_grasps[:,:3,3] -= obj_mesh_mean
-    contact_dicts = grasps_contact_info(output_grasps, list(output_labels), obj_mesh, check_collisions=False)
+    contact_dicts = grasps_contact_info(output_grasps, list(output_labels), obj_mesh, gripper_name, check_collisions=False)
 
     contact_dict_of_arrays = {}
     for d in contact_dicts:
@@ -110,7 +115,10 @@ def save_contact_data(pcreader, grasp_path, target_path='mesh_contacts'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Grasp data reader")
-    parser.add_argument('root_folder', help='Root dir with acronym grasps, meshes and splits', type=str)
+    parser.add_argument(
+        'root_folder', help='Root dir with acronym grasps, meshes and splits', type=str)
+    parser.add_argument(
+        '--gripper', help='Gripper-name, e.g. "panda"', type=str, default="panda")
     args = parser.parse_args()
     print('Root folder', args.root_folder)
 
@@ -121,4 +129,4 @@ if __name__ == '__main__':
     print('Computing grasp contacts...')
     for grasp_path in grasp_paths:
         print('Reading: ', grasp_path)
-        save_contact_data(pcreader, grasp_path)
+        save_contact_data(pcreader, grasp_path, args.gripper)

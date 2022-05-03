@@ -19,7 +19,7 @@ from data import regularize_pc_point_count, depth2pc, load_available_input_data
 from contact_grasp_estimator import GraspEstimator
 from visualization_utils import visualize_grasps, show_image
 
-def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=True, skip_border_objects=False, filter_grasps=True, segmap_id=None, z_range=[0.2,1.8], forward_passes=1):
+def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=True, skip_border_objects=False, filter_grasps=True, segmap_id=None, z_range=[0.2,1.8], forward_passes=1,gripper_name="panda"):
     """
     Predict 6-DoF grasp distribution for given model and input data
     
@@ -33,6 +33,7 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
     :param segmap_id: only return grasps from specified segmap_id.
     :param z_range: crop point cloud at a minimum/maximum z distance from camera to filter out outlier points. Default: [0.2, 1.8] m
     :param forward_passes: Number of forward passes to run on each point cloud. Default: 1
+    :param gripper_name: Name of the gripper to use. Default: "panda"
     """
     
     # Build the model
@@ -78,7 +79,8 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
 
         # Visualize results          
         show_image(rgb, segmap)
-        visualize_grasps(pc_full, pred_grasps_cam, scores, plot_opencv_cam=True, pc_colors=pc_colors)
+        visualize_grasps(gripper_name, pc_full, pred_grasps_cam,
+                         scores, plot_opencv_cam=True, pc_colors=pc_colors)
         
     if not glob.glob(input_paths):
         print('No files found: ', input_paths)
@@ -97,6 +99,8 @@ if __name__ == "__main__":
     parser.add_argument('--forward_passes', type=int, default=1,  help='Run multiple parallel forward passes to mesh_utils more potential contact points.')
     parser.add_argument('--segmap_id', type=int, default=0,  help='Only return grasps of the given object id')
     parser.add_argument('--arg_configs', nargs="*", type=str, default=[], help='overwrite config parameters')
+    parser.add_argument(
+        '--gripper', help='Gripper-name, e.g. "panda"', type=str, default="panda")
     FLAGS = parser.parse_args()
 
     global_config = config_utils.load_config(FLAGS.ckpt_dir, batch_size=FLAGS.forward_passes, arg_configs=FLAGS.arg_configs)
@@ -106,5 +110,5 @@ if __name__ == "__main__":
 
     inference(global_config, FLAGS.ckpt_dir, FLAGS.np_path if not FLAGS.png_path else FLAGS.png_path, z_range=eval(str(FLAGS.z_range)),
                 K=FLAGS.K, local_regions=FLAGS.local_regions, filter_grasps=FLAGS.filter_grasps, segmap_id=FLAGS.segmap_id, 
-                forward_passes=FLAGS.forward_passes, skip_border_objects=FLAGS.skip_border_objects)
+                forward_passes=FLAGS.forward_passes, skip_border_objects=FLAGS.skip_border_objects, gripper_name=FLAGS.gripper)
 

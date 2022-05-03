@@ -65,11 +65,13 @@ def show_image(rgb, segmap):
     plt.draw()
     plt.pause(0.001)
 
-def visualize_grasps(full_pc, pred_grasps_cam, scores, plot_opencv_cam=False, pc_colors=None, gripper_openings=None, gripper_width=0.08):
+
+def visualize_grasps(gripper_name, full_pc, pred_grasps_cam, scores, plot_opencv_cam=False, pc_colors=None, gripper_openings=None, gripper_width=0.08):
     """Visualizes colored point cloud and predicted grasps. If given, colors grasps by segmap regions. 
     Thick grasp is most confident per segment. For scene point cloud predictions, colors grasps according to confidence.
 
     Arguments:
+        gripper_name {str} -- Gripper model to load
         full_pc {np.ndarray} -- Nx3 point cloud of the scene
         pred_grasps_cam {dict[int:np.ndarray]} -- Predicted 4x4 grasp trafos per segment or for whole point cloud
         scores {dict[int:np.ndarray]} -- Confidence scores for grasps
@@ -97,12 +99,14 @@ def visualize_grasps(full_pc, pred_grasps_cam, scores, plot_opencv_cam=False, pc
         if np.any(pred_grasps_cam[k]):
             gripper_openings_k = np.ones(len(pred_grasps_cam[k]))*gripper_width if gripper_openings is None else gripper_openings[k]
             if len(pred_grasps_cam) > 1:
-                draw_grasps(pred_grasps_cam[k], np.eye(4), color=colors[i], gripper_openings=gripper_openings_k)    
-                draw_grasps([pred_grasps_cam[k][np.argmax(scores[k])]], np.eye(4), color=colors2[k], 
+                draw_grasps(gripper_name, pred_grasps_cam[k], np.eye(
+                    4), color=colors[i], gripper_openings=gripper_openings_k)
+                draw_grasps(gripper_name, [pred_grasps_cam[k][np.argmax(scores[k])]], np.eye(4), color=colors2[k],
                             gripper_openings=[gripper_openings_k[np.argmax(scores[k])]], tube_radius=0.0025)    
             else:
                 colors3 = [cm2(0.5*score)[:3] for score in scores[k]]
-                draw_grasps(pred_grasps_cam[k], np.eye(4), colors=colors3, gripper_openings=gripper_openings_k)    
+                draw_grasps(gripper_name, pred_grasps_cam[k], np.eye(
+                    4), colors=colors3, gripper_openings=gripper_openings_k)
     mlab.show()
 
 def draw_pc_with_colors(pc, pc_colors=None, single_color=(0.3,0.3,0.3), mode='2dsquare', scale_factor=0.0018):
@@ -140,11 +144,12 @@ def draw_pc_with_colors(pc, pc_colors=None, single_color=(0.3,0.3,0.3), mode='2d
         points_mlab.module_manager.scalar_lut_manager.lut.number_of_colors = rgb_lut.shape[0]
         points_mlab.module_manager.scalar_lut_manager.lut.table = rgb_lut
 
-def draw_grasps(grasps, cam_pose, gripper_openings, color=(0,1.,0), colors=None, show_gripper_mesh=False, tube_radius=0.0008):
+def draw_grasps(gripper_name,grasps, cam_pose, gripper_openings, color=(0,1.,0), colors=None, show_gripper_mesh=False, tube_radius=0.0008):
     """
     Draws wireframe grasps from given camera pose and with given gripper openings
 
     Arguments:
+        gripper_name {str} -- Gripper model to load
         grasps {np.ndarray} -- Nx4x4 grasp pose transformations
         cam_pose {np.ndarray} -- 4x4 camera pose transformation
         gripper_openings {np.ndarray} -- Nx1 gripper openings
@@ -156,7 +161,7 @@ def draw_grasps(grasps, cam_pose, gripper_openings, color=(0,1.,0), colors=None,
         show_gripper_mesh {bool} -- Renders the gripper mesh for one of the grasp poses (default: {False})
     """
 
-    gripper = mesh_utils.create_gripper('panda')
+    gripper = mesh_utils.create_gripper(gripper_name)
     gripper_control_points = gripper.get_control_point_tensor(1, False, convex_hull=False).squeeze()
     mid_point = 0.5*(gripper_control_points[1, :] + gripper_control_points[2, :])
     grasp_line_plot = np.array([np.zeros((3,)), mid_point, gripper_control_points[1], gripper_control_points[3], 

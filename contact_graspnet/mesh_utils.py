@@ -103,8 +103,8 @@ class PandaGripper(object):
         self.contact_ray_origins = []
         self.contact_ray_directions = []
 
-        # coords_path = os.path.join(root_folder, 'gripper_control_points/panda_gripper_coords.npy')
-        with open(os.path.join(root_folder,'gripper_control_points/panda_gripper_coords.pickle'), 'rb') as f:
+        # coords_path = os.path.join(root_folder, 'gripper_models/panda_gripper/panda_gripper_coords.npy')
+        with open(os.path.join(root_folder,'gripper_models/panda_gripper/panda_gripper_coords.pickle'), 'rb') as f:
             self.finger_coords = pickle.load(f, encoding='latin1')
         finger_direction = self.finger_coords['gripper_right_center_flat'] - self.finger_coords['gripper_left_center_flat']
         self.contact_ray_origins.append(np.r_[self.finger_coords['gripper_left_center_flat'], 1])
@@ -153,7 +153,8 @@ class PandaGripper(object):
             np.ndarray -- control points of the panda gripper 
         """
 
-        control_points = np.load(os.path.join(self.root_folder, 'gripper_control_points/panda.npy'))[:, :3]
+        control_points = np.load(os.path.join(
+            self.root_folder, 'gripper_models/panda_gripper/panda.npy'))[:, :3]
         if symmetric:
             control_points = [[0, 0, 0], control_points[1, :],control_points[0, :], control_points[-1, :], control_points[-2, :]]
         else:
@@ -189,6 +190,8 @@ def create_gripper(name, configuration=None, root_folder=os.path.dirname(os.path
     """
     if name.lower() == 'panda':
         return PandaGripper(q=configuration, root_folder=root_folder)
+    if name.lower() == 'david-simple':
+        return DavidSimpleGripper(q=configuration, root_folder=root_folder)
     else:
         raise Exception("Unknown gripper: {}".format(name))
 
