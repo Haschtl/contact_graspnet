@@ -96,7 +96,7 @@ def train():
         with tf.device('/gpu:'+str(GPU_INDEX)):
             pointclouds_pl, labels_pl, cls_labels_pl = MODEL.placeholder_inputs(BATCH_SIZE, NUM_POINT)
             is_training_pl = tf.placeholder(tf.bool, shape=())
-            print is_training_pl
+            print(is_training_pl)
             
             # Note the global_step=batch parameter to minimize. 
             # That tells the optimizer to helpfully increment the 'batch' parameter for you every time it trains.
@@ -104,7 +104,7 @@ def train():
             bn_decay = get_bn_decay(batch)
             tf.summary.scalar('bn_decay', bn_decay)
 
-            print "--- Get model and loss"
+            print("--- Get model and loss")
             # Get model and loss 
             pred, end_points = MODEL.get_model(pointclouds_pl, cls_labels_pl, is_training_pl, bn_decay=bn_decay)
             loss = MODEL.get_loss(pred, labels_pl)
@@ -114,7 +114,7 @@ def train():
             accuracy = tf.reduce_sum(tf.cast(correct, tf.float32)) / float(BATCH_SIZE*NUM_POINT)
             tf.summary.scalar('accuracy', accuracy)
 
-            print "--- Get training operator"
+            print("--- Get training operator")
             # Get training operator
             learning_rate = get_learning_rate(batch)
             tf.summary.scalar('learning_rate', learning_rate)
@@ -132,17 +132,17 @@ def train():
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
         config.log_device_placement = False
-        sess = tf.Session(config=config)
+        session = tf.Session(config=config)
 
         # Add summary writers
         merged = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'), sess.graph)
-        test_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'test'), sess.graph)
+        train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'), session.graph)
+        test_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'test'), session.graph)
 
         # Init variables
         init = tf.global_variables_initializer()
-        sess.run(init)
-        #sess.run(init, {is_training_pl: True})
+        session.run(init)
+        #session.run(init, {is_training_pl: True})
 
         ops = {'pointclouds_pl': pointclouds_pl,
                'labels_pl': labels_pl,
@@ -160,12 +160,12 @@ def train():
             log_string('**** EPOCH %03d ****' % (epoch))
             sys.stdout.flush()
              
-            train_one_epoch(sess, ops, train_writer)
-            eval_one_epoch(sess, ops, test_writer)
+            train_one_epoch(session, ops, train_writer)
+            eval_one_epoch(session, ops, test_writer)
 
             # Save the variables to disk.
             if epoch % 10 == 0:
-                save_path = saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"))
+                save_path = saver.save(session, os.path.join(LOG_DIR, "model.ckpt"))
                 log_string("Model saved in file: %s" % save_path)
 
 def get_batch(dataset, idxs, start_idx, end_idx):
@@ -181,7 +181,7 @@ def get_batch(dataset, idxs, start_idx, end_idx):
         batch_cls_label[i] = cls
     return batch_data, batch_label, batch_cls_label
 
-def train_one_epoch(sess, ops, train_writer):
+def train_one_epoch(session, ops, train_writer):
     """ ops: dict mapping from string to tf ops """
     is_training = True
     
@@ -207,7 +207,7 @@ def train_one_epoch(sess, ops, train_writer):
                      ops['labels_pl']: batch_label,
                      ops['cls_labels_pl']: batch_cls_label,
                      ops['is_training_pl']: is_training,}
-        summary, step, _, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+        summary, step, _, loss_val, pred_val = session.run([ops['merged'], ops['step'],
             ops['train_op'], ops['loss'], ops['pred']], feed_dict=feed_dict)
         train_writer.add_summary(summary, step)
         pred_val = np.argmax(pred_val, 2)
@@ -226,7 +226,7 @@ def train_one_epoch(sess, ops, train_writer):
         
 
         
-def eval_one_epoch(sess, ops, test_writer):
+def eval_one_epoch(session, ops, test_writer):
     """ ops: dict mapping from string to tf ops """
     global EPOCH_CNT
     is_training = False
@@ -274,7 +274,7 @@ def eval_one_epoch(sess, ops, test_writer):
                      ops['labels_pl']: batch_label,
                      ops['cls_labels_pl']: batch_cls_label,
                      ops['is_training_pl']: is_training}
-        summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+        summary, step, loss_val, pred_val = session.run([ops['merged'], ops['step'],
             ops['loss'], ops['pred']], feed_dict=feed_dict)
         test_writer.add_summary(summary, step)
         # ---------------------------------------------------------------------

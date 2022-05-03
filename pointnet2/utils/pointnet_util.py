@@ -19,7 +19,7 @@ try:
     import tensorflow.compat.v1 as tf
     tf.disable_eager_execution()
     TF2 = True
-except:
+except ImportError:
     import tensorflow as tf
     TF2 = False
 import numpy as np

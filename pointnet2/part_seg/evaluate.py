@@ -60,9 +60,9 @@ def evaluate():
         with tf.device('/gpu:'+str(GPU_INDEX)):
             pointclouds_pl, labels_pl = MODEL.placeholder_inputs(BATCH_SIZE, NUM_POINT)
             is_training_pl = tf.placeholder(tf.bool, shape=())
-            print is_training_pl
+            print(is_training_pl)
             
-            print "--- Get model and loss"
+            print("--- Get model and loss")
             pred, end_points = MODEL.get_model(pointclouds_pl, is_training_pl)
             loss = MODEL.get_loss(pred, labels_pl)
             saver = tf.train.Saver()
@@ -71,16 +71,16 @@ def evaluate():
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
-        sess = tf.Session(config=config)
+        session = tf.Session(config=config)
         # Restore variables from disk.
-        saver.restore(sess, MODEL_PATH)
+        saver.restore(session, MODEL_PATH)
         ops = {'pointclouds_pl': pointclouds_pl,
                'labels_pl': labels_pl,
                'is_training_pl': is_training_pl,
                'pred': pred,
                'loss': loss}
 
-        eval_one_epoch(sess, ops)
+        eval_one_epoch(session, ops)
 
 def get_batch(dataset, idxs, start_idx, end_idx):
     bsize = end_idx-start_idx
@@ -93,7 +93,7 @@ def get_batch(dataset, idxs, start_idx, end_idx):
         batch_label[i,:] = seg
     return batch_data, batch_label
 
-def eval_one_epoch(sess, ops):
+def eval_one_epoch(session, ops):
     """ ops: dict mapping from string to tf ops """
     is_training = False
     test_idxs = np.arange(0, len(TEST_DATASET))
@@ -139,7 +139,7 @@ def eval_one_epoch(sess, ops):
             feed_dict = {ops['pointclouds_pl']: batch_data,
                          ops['labels_pl']: batch_label,
                          ops['is_training_pl']: is_training}
-            temp_loss_val, temp_pred_val = sess.run([ops['loss'], ops['pred']], feed_dict=feed_dict)
+            temp_loss_val, temp_pred_val = session.run([ops['loss'], ops['pred']], feed_dict=feed_dict)
             loss_val += temp_loss_val
             pred_val += temp_pred_val
         loss_val /= float(VOTE_NUM)
@@ -180,7 +180,7 @@ def eval_one_epoch(sess, ops):
         for iou in shape_ious[cat]:
             all_shape_ious.append(iou)
         shape_ious[cat] = np.mean(shape_ious[cat])
-    print len(all_shape_ious)
+    print(len(all_shape_ious))
     mean_shape_ious = np.mean(shape_ious.values())
     log_string('eval mean loss: %f' % (loss_sum / float(len(TEST_DATASET)/BATCH_SIZE)))
     log_string('eval accuracy: %f'% (total_correct / float(total_seen)))

@@ -222,16 +222,16 @@ def train():
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
         config.log_device_placement = False
-        sess = tf.Session(config=config)
+        session = tf.Session(config=config)
 
         # Add summary writers
         merged = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'), sess.graph)
-        test_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'test'), sess.graph)
+        train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'), session.graph)
+        test_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'test'), session.graph)
 
         # Init variables
         init = tf.global_variables_initializer()
-        sess.run(init)
+        session.run(init)
 
         ops = {'pointclouds_pl': pointclouds_pl,
                'labels_pl': labels_pl,
@@ -248,16 +248,16 @@ def train():
             log_string('**** EPOCH %03d ****' % (epoch))
             sys.stdout.flush()
              
-            train_one_epoch(sess, ops, train_writer)
-            eval_one_epoch(sess, ops, test_writer)
+            train_one_epoch(session, ops, train_writer)
+            eval_one_epoch(session, ops, test_writer)
 
             # Save the variables to disk.
             if epoch % 10 == 0:
-                save_path = saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"))
+                save_path = saver.save(session, os.path.join(LOG_DIR, "model.ckpt"))
                 log_string("Model saved in file: %s" % save_path)
 
 
-def train_one_epoch(sess, ops, train_writer):
+def train_one_epoch(session, ops, train_writer):
     """ ops: dict mapping from string to tf ops """
     is_training = True
     
@@ -281,7 +281,7 @@ def train_one_epoch(sess, ops, train_writer):
         feed_dict = {ops['pointclouds_pl']: cur_batch_data,
                      ops['labels_pl']: cur_batch_label,
                      ops['is_training_pl']: is_training,}
-        summary, step, _, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+        summary, step, _, loss_val, pred_val = session.run([ops['merged'], ops['step'],
             ops['train_op'], ops['loss'], ops['pred']], feed_dict=feed_dict)
         train_writer.add_summary(summary, step)
         pred_val = np.argmax(pred_val, 1)
@@ -300,7 +300,7 @@ def train_one_epoch(sess, ops, train_writer):
 
     TRAIN_DATASET.reset()
         
-def eval_one_epoch(sess, ops, test_writer):
+def eval_one_epoch(session, ops, test_writer):
     """ ops: dict mapping from string to tf ops """
     global EPOCH_CNT
     is_training = False
@@ -330,7 +330,7 @@ def eval_one_epoch(sess, ops, test_writer):
         feed_dict = {ops['pointclouds_pl']: cur_batch_data,
                      ops['labels_pl']: cur_batch_label,
                      ops['is_training_pl']: is_training}
-        summary, step, loss_val, pred_val = sess.run([ops['merged'], ops['step'],
+        summary, step, loss_val, pred_val = session.run([ops['merged'], ops['step'],
             ops['loss'], ops['pred']], feed_dict=feed_dict)
         test_writer.add_summary(summary, step)
         pred_val = np.argmax(pred_val, 1)

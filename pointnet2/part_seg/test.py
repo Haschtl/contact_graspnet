@@ -46,17 +46,17 @@ def get_model(batch_size, num_point):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
-        sess = tf.Session(config=config)
+        session = tf.Session(config=config)
         # Restore variables from disk.
-        saver.restore(sess, MODEL_PATH)
+        saver.restore(session, MODEL_PATH)
         ops = {'pointclouds_pl': pointclouds_pl,
                'labels_pl': labels_pl,
                'is_training_pl': is_training_pl,
                'pred': pred,
                'loss': loss}
-        return sess, ops
+        return session, ops
 
-def inference(sess, ops, pc, batch_size):
+def inference(session, ops, pc, batch_size):
     ''' pc: BxNx3 array, return BxN pred '''
     assert pc.shape[0]%batch_size == 0
     num_batches = pc.shape[0]/batch_size
@@ -64,7 +64,7 @@ def inference(sess, ops, pc, batch_size):
     for i in range(num_batches):
         feed_dict = {ops['pointclouds_pl']: pc[i*batch_size:(i+1)*batch_size,...],
                      ops['is_training_pl']: False}
-        batch_logits = sess.run(ops['pred'], feed_dict=feed_dict)
+        batch_logits = session.run(ops['pred'], feed_dict=feed_dict)
         logits[i*batch_size:(i+1)*batch_size,...] = batch_logits
     return np.argmax(logits, 2)
 
@@ -76,8 +76,8 @@ if __name__=='__main__':
 
     for i in range(len(TEST_DATASET)):
         ps, seg = TEST_DATASET[i]
-        sess, ops = get_model(batch_size=1, num_point=ps.shape[0])
-        segp = inference(sess, ops, np.expand_dims(ps,0), batch_size=1) 
+        session, ops = get_model(batch_size=1, num_point=ps.shape[0])
+        segp = inference(session, ops, np.expand_dims(ps,0), batch_size=1) 
         segp = segp.squeeze()
 
         gt = cmap[seg, :]

@@ -85,10 +85,10 @@ def evaluate(num_votes):
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
     config.log_device_placement = False
-    sess = tf.Session(config=config)
+    session = tf.Session(config=config)
 
     # Restore variables from disk.
-    saver.restore(sess, MODEL_PATH)
+    saver.restore(session, MODEL_PATH)
     log_string("Model restored.")
 
     ops = {'pointclouds_pl': pointclouds_pl,
@@ -97,9 +97,9 @@ def evaluate(num_votes):
            'pred': pred,
            'loss': total_loss}
 
-    eval_one_epoch(sess, ops, num_votes)
+    eval_one_epoch(session, ops, num_votes)
 
-def eval_one_epoch(sess, ops, num_votes=1, topk=1):
+def eval_one_epoch(session, ops, num_votes=1, topk=1):
     is_training = False
 
     # Make sure batch data is of same size
@@ -136,7 +136,7 @@ def eval_one_epoch(sess, ops, num_votes=1, topk=1):
             feed_dict = {ops['pointclouds_pl']: rotated_data,
                          ops['labels_pl']: cur_batch_label,
                          ops['is_training_pl']: is_training}
-            loss_val, pred_val = sess.run([ops['loss'], ops['pred']], feed_dict=feed_dict)
+            loss_val, pred_val = session.run([ops['loss'], ops['pred']], feed_dict=feed_dict)
             batch_pred_sum += pred_val
         pred_val = np.argmax(batch_pred_sum, 1)
         correct = np.sum(pred_val[0:bsize] == batch_label[0:bsize])

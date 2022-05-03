@@ -7,7 +7,7 @@ All Rights Reserved. 2017.
 try:
     import tensorflow.compat.v1 as tf
     tf.disable_eager_execution()
-except:
+except ImportError:
     import tensorflow as tf
 from tensorflow.python.framework import ops
 import sys
@@ -88,11 +88,11 @@ if __name__=='__main__':
         print('pt_sample: ', pt_sample)
         reduced_sample=gather_point(pt_sample,farthest_point_sample(1024,pt_sample))
         print(reduced_sample)
-    with tf.Session('') as sess:
-        ret=sess.run(reduced_sample)
+    with tf.Session('') as session:
+        ret=session.run(reduced_sample)
     print(ret.shape,ret.dtype)
     try:
       import cPickle as pickle
-    except:
+    except ImportError:
       import pickle
     pickle.dump(ret,open('1.pkl','wb'),-1)

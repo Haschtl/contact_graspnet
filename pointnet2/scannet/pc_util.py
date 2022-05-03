@@ -31,9 +31,9 @@ def point_cloud_label_to_surface_voxel_label(point_cloud, label, res=0.0484):
         uvlabel = [np.argmax(np.bincount(label[vidx==uv].astype(np.uint32))) for uv in uvidx]
     else:
         assert(label.ndim==2)
-	uvlabel = np.zeros(len(uvidx),label.shape[1])
-	for i in range(label.shape[1]):
-	    uvlabel[:,i] = np.array([np.argmax(np.bincount(label[vidx==uv,i].astype(np.uint32))) for uv in uvidx])
+    uvlabel = np.zeros(len(uvidx),label.shape[1])
+    for i in range(label.shape[1]):
+        uvlabel[:,i] = np.array([np.argmax(np.bincount(label[vidx==uv,i].astype(np.uint32))) for uv in uvidx])
     return uvidx, uvlabel, nvox
 
 def point_cloud_label_to_surface_voxel_label_fast(point_cloud, label, res=0.0484):
@@ -47,7 +47,7 @@ def point_cloud_label_to_surface_voxel_label_fast(point_cloud, label, res=0.0484
         uvlabel = label[vpidx]
     else:
         assert(label.ndim==2)
-	uvlabel = label[vpidx,:]
+    uvlabel = label[vpidx,:]
     return uvidx, uvlabel, nvox
 
 def point_cloud_to_volume_batch(point_clouds, vsize=12, radius=1.0, flatten=True):
@@ -80,7 +80,7 @@ def point_cloud_to_volume(points, vsize, radius=1.0):
     return vol
 
 #a = np.zeros((16,1024,3))
-#print point_cloud_to_volume_batch(a, 12, 1.0, False).shape
+#print(point_cloud_to_volume_batch(a, 12, 1.0, False).shape)
 
 def volume_to_point_cloud(vol):
     """ vol is occupancy grid (value = 0 or 1) of size vsize*vsize*vsize
@@ -128,7 +128,7 @@ def point_cloud_to_volume_v2(points, vsize, radius=1.0, num_sample=128):
         if loc not in loc2pc:
             loc2pc[loc] = []
         loc2pc[loc].append(points[n,:])
-    #print loc2pc
+    #print(loc2pc)
 
     for i in range(vsize):
         for j in range(vsize):
@@ -146,10 +146,10 @@ def point_cloud_to_volume_v2(points, vsize, radius=1.0, num_sample=128):
                         pc = np.lib.pad(pc, ((0,num_sample-pc.shape[0]),(0,0)), 'edge')
                     # Normalize
                     pc_center = (np.array([i,j,k])+0.5)*voxel - radius
-                    #print 'pc center: ', pc_center
+                    #print('pc center: ', pc_center)
                     pc = (pc - pc_center) / voxel # shift and scale
                     vol[i,j,k,:,:] = pc 
-                #print (i,j,k), vol[i,j,k,:,:]
+                #print((i,j,k), vol[i,j,k,:,:])
     return vol
 
 def point_cloud_to_image_batch(point_clouds, imgsize, radius=1.0, num_sample=128):

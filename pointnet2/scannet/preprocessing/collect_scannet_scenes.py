@@ -20,11 +20,11 @@ def collect_one_scene_data_label(scene_name, out_filename):
     # Over-segmented segments: maps from segment to vertex/point IDs
     data_folder = os.path.join(SCANNET_DIR, scene_name)
     mesh_seg_filename = os.path.join(data_folder, '%s_vh_clean_2.0.010000.segs.json'%(scene_name))
-    #print mesh_seg_filename
+    #print(mesh_seg_filename)
     with open(mesh_seg_filename) as jsondata:
         d = json.load(jsondata)
         seg = d['segIndices']
-        #print len(seg)
+        #print(len(seg))
     segid_to_pointid = {}
     for i in range(len(seg)):
         if seg[i] not in segid_to_pointid:
@@ -40,15 +40,15 @@ def collect_one_scene_data_label(scene_name, out_filename):
     instance_segids = []
     labels = []
     annotation_filename = os.path.join(data_folder, '%s.aggregation.json'%(scene_name))
-    #print annotation_filename
+    #print(annotation_filename)
     with open(annotation_filename) as jsondata:
         d = json.load(jsondata)
         for x in d['segGroups']:
             instance_segids.append(x['segments'])
             labels.append(x['label'])
     
-    #print len(instance_segids)
-    #print labels
+    #print(len(instance_segids))
+    #print(labels)
     
     # Each instance's points
     instance_points_list = []
@@ -95,7 +95,7 @@ if __name__=='__main__':
         try:
             out_filename = scene_name+'.npy' # scene0000_00.npy
             collect_one_scene_data_label(scene_name, os.path.join(output_folder, out_filename))
-        except Exception, e:
+        except Exception as e:
             log_string(scene_name+'ERROR!!')
             log_string(str(e))
     

@@ -2,7 +2,7 @@ from __future__ import print_function
 try:
     import tensorflow.compat.v1 as tf
     tf.disable_eager_execution()
-except:
+except ImportError:
     import tensorflow as tf
 from tensorflow.python.framework import ops
 import sys
@@ -106,11 +106,11 @@ if __name__=='__main__':
             grouped_points = group_point(xyz1, idx)
             #grouped_points_grad = tf.ones_like(grouped_points)
             #points_grad = tf.gradients(grouped_points, points, grouped_points_grad)
-    with tf.Session('') as sess:
+    with tf.Session('') as session:
         now = time.time() 
         print(now)
         for _ in range(1):
-            ret, d,idcs = sess.run([grouped_points, dists, idx])
+            ret, d,idcs = session.run([grouped_points, dists, idx])
             print(d[0,5,:2])
             print(ret[0])
             print(idcs[0])

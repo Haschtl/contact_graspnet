@@ -2,7 +2,7 @@ from __future__ import print_function
 try:
     import tensorflow.compat.v1 as tf
     tf.disable_eager_execution()
-except:
+except ImportError:
     import tensorflow as tf
     
 from tensorflow.python.framework import ops
@@ -53,13 +53,13 @@ if __name__=='__main__':
         dist, idx = three_nn(xyz1, xyz2)
         weight = tf.ones_like(dist)/3.0
         interpolated_points = three_interpolate(points, idx, weight)
-    with tf.Session('') as sess:
+    with tf.Session('') as session:
         now = time.time() 
         for _ in range(100):
-            ret = sess.run(interpolated_points)
+            ret = session.run(interpolated_points)
         print(time.time() - now)
         print(ret.shape, ret.dtype)
-        #print ret
+        #print(ret)
     
     
     
