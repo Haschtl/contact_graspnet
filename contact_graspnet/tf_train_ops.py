@@ -244,7 +244,7 @@ def load_contact_grasps(contact_list, data_config):
         all_pos_contact_dirs = all_contact_directions[pos_idcs]
         all_pos_approach_dirs = all_approach_directions[pos_idcs//2]
 
-        # Use all positive contacts then mesh_utils with replacement
+        # Use all positive contacts then gripper with replacement
         if num_pos_contacts > len(all_pos_contact_points)/2:
             pos_sampled_contact_idcs = np.arange(len(all_pos_contact_points))
             pos_sampled_contact_idcs_replacement = np.random.choice(np.arange(len(

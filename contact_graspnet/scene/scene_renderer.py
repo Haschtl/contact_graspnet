@@ -1,7 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-from .mesh_utils.mesh_utils import Object
+from .mesh_utils import Object
 import numpy as np
 import copy
 from copy import deepcopy

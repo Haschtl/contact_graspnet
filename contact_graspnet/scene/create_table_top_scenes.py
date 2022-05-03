@@ -8,7 +8,7 @@ import argparse
 import signal
 import trimesh.transformations as tra
 
-from acronym_tools import Scene, load_mesh, create_gripper_marker
+from .acronym.acronym_tools import Scene, load_mesh, create_gripper_marker
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

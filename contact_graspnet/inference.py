@@ -106,7 +106,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip_border_objects', action='store_true', default=False,
                         help='When extracting local_regions, ignore segments at depth map boundary.')
     parser.add_argument('--forward_passes', type=int, default=1,
-                        help='Run multiple parallel forward passes to mesh_utils more potential contact points.')
+                        help='Run multiple parallel forward passes to gripper more potential contact points.')
     parser.add_argument('--segmap_id', type=int, default=0,
                         help='Only return grasps of the given object id')
     parser.add_argument('--arg_configs', nargs="*", type=str,

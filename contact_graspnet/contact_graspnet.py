@@ -1,8 +1,4 @@
 from .gripper.__main__ import create_gripper
-from tf_grouping import group_point
-from tf_sampling import farthest_point_sample, gather_point
-from pointnet_util import pointnet_sa_module, pointnet_fp_module, pointnet_sa_module_msg
-import tf_util
 import os
 import sys
 import numpy as np
@@ -16,6 +12,10 @@ ROOT_DIR = os.path.dirname(os.path.dirname(BASE_DIR))
 sys.path.append(os.path.join(BASE_DIR))
 sys.path.append(os.path.join(BASE_DIR, 'pointnet2', 'utils'))
 sys.path.append(os.path.join(BASE_DIR, 'pointnet2'))
+from tf_grouping import group_point
+from tf_sampling import farthest_point_sample, gather_point
+from pointnet_util import pointnet_sa_module, pointnet_fp_module, pointnet_sa_module_msg
+import tf_util
 
 
 def placeholder_inputs(batch_size, num_input_points=20000, input_normals=False):

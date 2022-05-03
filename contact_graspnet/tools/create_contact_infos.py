@@ -81,8 +81,8 @@ def save_contact_data(pcreader, grasp_path, gripper_name, target_path='mesh_cont
     Maps acronym grasp data to contact information on meshes and saves them as npz file
 
     Arguments:
-        grasp_path {str} -- path to grasp json file 
         pcreader {Object} -- PointCloudReader instance from data.py 
+        grasp_path {str} -- path to grasp json file 
         gripper_name {str} -- Name of the gripper to use
         target_path {str} -- Output path
 

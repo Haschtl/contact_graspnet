@@ -1,4 +1,4 @@
-from .scene_renderer import SceneRenderer
+from .scene.scene_renderer import SceneRenderer
 import provider
 from scipy.spatial import cKDTree
 import trimesh.transformations as tra
