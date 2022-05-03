@@ -1,6 +1,6 @@
-from data import farthest_points, distance_by_translation_point, preprocess_pc_for_inference, regularize_pc_point_count, depth2pc, reject_median_outliers
-import config_utils
-from tf_train_ops import get_bn_decay
+from .data import farthest_points, distance_by_translation_point, preprocess_pc_for_inference, regularize_pc_point_count, depth2pc, reject_median_outliers
+from . import config_utils
+from .tf_train_ops import get_bn_decay
 import importlib
 import numpy as np
 import sys

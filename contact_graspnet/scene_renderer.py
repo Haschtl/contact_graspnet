@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from .mesh_utils.mesh_utils import Object
 import numpy as np
 import copy
 from copy import deepcopy
@@ -8,7 +9,6 @@ import pyrender
 import trimesh
 import trimesh.transformations as tra
 
-from mesh_utils.mesh_utils import Object
 
 
 class SceneRenderer:

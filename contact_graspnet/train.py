@@ -1,8 +1,8 @@
-from contact_grasp_estimator import GraspEstimator
-from tf_train_ops import load_labels_and_losses, build_train_op
-from summaries import build_summary_ops, build_file_writers
-from data import PointCloudReader, load_scene_contacts, center_pc_convert_cam
-import config_utils
+from .contact_grasp_estimator import GraspEstimator
+from .tf_train_ops import load_labels_and_losses, build_train_op
+from .summaries import build_summary_ops, build_file_writers
+from .data import PointCloudReader, load_scene_contacts, center_pc_convert_cam
+from . import config_utils
 import tensorflow.compat.v1 as tf
 import os
 import sys
