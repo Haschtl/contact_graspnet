@@ -107,13 +107,13 @@ The `scene_contacts` downloaded above are generated from the Acronym dataset. To
 In the first step, object-wise 6-DoF grasps are mapped to their contact points saved in `mesh_contacts`
 
 ```
-python tools/create_contact_infos.py /path/to/acronym
+python contact_graspnet/tools/create_contact_infos.py /path/to/acronym
 ```
 
 From the generated `mesh_contacts` you can create table-top scenes which are saved in `scene_contacts` with
 
 ```
-python tools/create_table_top_scenes.py /path/to/acronym
+python contact_graspnet/tools/create_table_top_scenes.py /path/to/acronym
 ```
 
 Takes ~3 days in a single thread. Run the command several times to process on multiple cores in parallel.
@@ -121,7 +121,7 @@ Takes ~3 days in a single thread. Run the command several times to process on mu
 You can also visualize existing table-top scenes and grasps
 
 ```
-python tools/create_table_top_scenes.py /path/to/acronym \
+python contact_graspnet/tools/create_table_top_scenes.py /path/to/acronym \
        --load_existing scene_contacts/000000.npz -vis
 ```
 

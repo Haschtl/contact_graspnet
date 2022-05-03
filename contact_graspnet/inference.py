@@ -2,9 +2,7 @@ import os
 import sys
 import argparse
 import numpy as np
-import time
 import glob
-import cv2
 
 import tensorflow.compat.v1 as tf
 tf.disable_eager_execution()

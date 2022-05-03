@@ -43,7 +43,7 @@ def load_contacts(root_folder, data_splits, splits=['train'], min_pos_contacts=1
                             contact_infos[grasp_path]['grasp_transform'] = npz['grasp_transform']
                             contact_infos[grasp_path]['contact_points'] = npz['contact_points']
     if not contact_infos:
-        print('Warning: No mesh_contacts found. Please run tools/create_contact_infos.py first!')
+        print('Warning: No mesh_contacts found. Please run contact_graspnet/tools/create_contact_infos.py first!')
     return contact_infos
 
 def load_splits(root_folder):
@@ -466,7 +466,8 @@ if __name__ == "__main__":
     parser.add_argument('--num_grasp_scenes', type=int, default=10000)
     parser.add_argument('--splits','--list', nargs='+')
     parser.add_argument('--max_iterations', type=int, default=100)
-    parser.add_argument('--gripper_path', type=str, default='gripper_models/panda_gripper/panda_gripper.obj')
+    parser.add_argument('--gripper_path', type=str,
+                        default='contact_graspnet/gripper_models/panda_gripper/panda_gripper.obj')
     parser.add_argument('--min_num_objects', type=int, default=8)
     parser.add_argument('--max_num_objects', type=int, default=12)
     parser.add_argument('--start_index', type=int, default=0)

@@ -469,7 +469,7 @@ class PointCloudReader:
         self._renderer = SceneRenderer(caching=True, intrinsics=intrinsics)
 
         if use_uniform_quaternions:
-            quat_path = os.path.join(self._root_folder, 'uniform_quaternions/data2_4608.qua')
+            quat_path = os.path.join(self._root_folder, 'contact_graspnet/uniform_quaternions/data2_4608.qua')
             quaternions = [l[:-1].split('\t') for l in open(quat_path, 'r').readlines()]
 
             quaternions = [[float(t[0]),

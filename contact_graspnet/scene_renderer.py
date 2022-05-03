@@ -3,16 +3,12 @@ from __future__ import absolute_import
 
 import numpy as np
 import copy
-import cv2
-import math
-import os
 from copy import deepcopy
-import multiprocessing as mp
 import pyrender
 import trimesh
 import trimesh.transformations as tra
 
-from mesh_utils import Object
+from mesh_utils.mesh_utils import Object
 
 class SceneRenderer:
     def __init__(self, intrinsics=None, fov=np.pi / 6, caching=True, viewing_mode=False):

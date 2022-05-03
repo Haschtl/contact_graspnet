@@ -9,7 +9,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
 
 from contact_graspnet.data import PointCloudReader
-from contact_graspnet.mesh_utils import in_collision_with_gripper, grasp_contact_location
+from contact_graspnet.mesh_utils.mesh_utils import in_collision_with_gripper, grasp_contact_location
 
 
 def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, gripper_name, check_collisions=True):

@@ -17,7 +17,7 @@ from pointnet_util import pointnet_sa_module, pointnet_fp_module, pointnet_sa_mo
 from tf_sampling import farthest_point_sample, gather_point
 from tf_grouping import query_ball_point, group_point, knn_point
 
-import mesh_utils
+from mesh_utils.mesh_utils import create_gripper 
 
 def placeholder_inputs(batch_size, num_input_points=20000, input_normals=False):
     """
@@ -272,7 +272,7 @@ def get_losses(pointclouds_pl, end_points, dir_labels_pc_cam, offset_labels_pc, 
     pos_gt_grasps_proj = tf.where(tf.broadcast_to(tf.expand_dims(tf.expand_dims(tf.cast(grasp_success_labels_pc, tf.bool),2),3), gt_grasps_proj.shape), gt_grasps_proj, tf.ones_like(gt_grasps_proj)*100000)
     # pos_gt_grasps_proj = tf.reshape(pos_gt_grasps_proj, (global_config['OPTIMIZER']['batch_size'], -1, 4, 4)) 
 
-    gripper = mesh_utils.create_gripper(gripper_name)
+    gripper = create_gripper(gripper_name)
     gripper_control_points = gripper.get_control_point_tensor(global_config['OPTIMIZER']['batch_size']) # b x 5 x 3
     sym_gripper_control_points = gripper.get_control_point_tensor(global_config['OPTIMIZER']['batch_size'], symmetric=True)
 
