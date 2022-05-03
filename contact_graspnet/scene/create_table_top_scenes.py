@@ -130,24 +130,25 @@ class TableScene(Scene):
 
         return obj_mesh, random_grasp_path
 
-    def _get_random_stable_pose(self, stable_poses, stable_poses_probs, thres=0.005):
+    def _get_random_stable_pose(self, stable_poses, stable_poses_probs, threshold=0.005):
         """Return a stable pose according to their likelihood.
 
         Args:
             stable_poses (list[np.ndarray]): List of stable poses as 4x4 matrices.
             stable_poses_probs (list[float]): List of probabilities.
-            thres (float): Threshold of pose stability to include for sampling
+            threshold (float): Threshold of pose stability to include for sampling
 
         Returns:
             np.ndarray: homogeneous 4x4 matrix
         """
 
-        # Random pose with unique (avoid symmetric poses) stability prob > thres
+        # Random pose with unique (avoid symmetric poses) stability prob > threshold
         _, unique_idcs = np.unique(
             stable_poses_probs.round(decimals=3), return_index=True)
         unique_idcs = unique_idcs[::-1]
         unique_stable_poses_probs = stable_poses_probs[unique_idcs]
-        n = len(unique_stable_poses_probs[unique_stable_poses_probs > thres])
+        n = len(
+            unique_stable_poses_probs[unique_stable_poses_probs > threshold])
         index = unique_idcs[np.random.randint(n)]
 
         # index = np.random.choice(len(stable_poses), p=stable_poses_probs)
@@ -406,7 +407,7 @@ class TableScene(Scene):
         obj_scales = []
         grasp_paths = []
 
-        for i in range(num_obj):
+        for _ in range(num_obj):
             obj_mesh, random_grasp_path = self.get_random_object()
             signal.signal(signal.SIGALRM, self.handler)
             signal.alarm(8)

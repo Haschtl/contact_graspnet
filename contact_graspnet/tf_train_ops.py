@@ -138,7 +138,7 @@ def load_labels_and_losses(grasp_estimator, contact_infos, global_config, train=
         total_loss += global_config['OPTIMIZER']['adds_gt2pred_loss_weight'] * \
             adds_loss_gt2pred
 
-    tf_bin_vals = grasp_estimator._model_func.get_bin_vals(global_config)
+    tf_bin_values = grasp_estimator._model_func.get_bin_values(global_config)
 
     loss_label_ops = {'loss': total_loss,
                       'dir_loss': dir_loss,
@@ -150,11 +150,11 @@ def load_labels_and_losses(grasp_estimator, contact_infos, global_config, train=
                       'dir_labels_pc_cam': dir_labels_pc_cam,
                       'offset_labels_pc': offset_labels_pc,
                       'offset_label_idcs_pc': tf.argmax(offset_labels_pc, axis=2) if global_config['MODEL']['bin_offsets'] else None,
-                      'offset_orig_labels_vals': orig_offset_labels if global_config['MODEL']['bin_offsets'] else None,
-                      'offset_bin_label_vals': tf.gather_nd(tf_bin_vals, tf.expand_dims(tf.argmax(offset_labels_pc, axis=2), axis=2)) if global_config['MODEL']['bin_offsets'] else None,
+                      'offset_orig_labels_values': orig_offset_labels if global_config['MODEL']['bin_offsets'] else None,
+                      'offset_bin_label_values': tf.gather_nd(tf_bin_values, tf.expand_dims(tf.argmax(offset_labels_pc, axis=2), axis=2)) if global_config['MODEL']['bin_offsets'] else None,
                       'grasp_suc_labels_pc': grasp_suc_labels_pc,
                       'approach_labels_pc': approach_labels_pc,
-                      'tf_bin_vals': tf_bin_vals,
+                      'tf_bin_values': tf_bin_values,
                       'scene_idx': tf_scene_idcs,
                       'iterator': iterator
                       }

@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(BASE_DIR))
 
 
-def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=True, skip_border_objects=False, filter_grasps=True, segmap_id=None, z_range=[0.2, 1.8], forward_passes=1, gripper_name="panda"):
+def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=True, skip_border_objects=False, filter_grasps=True, z_range=[0.2, 1.8], forward_passes=1, gripper_name="panda"):
     """
     Predict 6-DoF grasp distribution for given model and input data
 
@@ -28,10 +28,10 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
     :param local_regions: Crop 3D local regions around given segments. 
     :param skip_border_objects: When extracting local_regions, ignore segments at depth map boundary.
     :param filter_grasps: Filter and assign grasp contacts according to segmap.
-    :param segmap_id: only return grasps from specified segmap_id.
     :param z_range: crop point cloud at a minimum/maximum z distance from camera to filter out outlier points. Default: [0.2, 1.8] m
     :param forward_passes: Number of forward passes to run on each point cloud. Default: 1
     :param gripper_name: Name of the gripper to use. Default: "panda"
+    # :param segmap_id: only return grasps from specified segmap_id.
     """
 
     # Build the model
@@ -45,10 +45,10 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
-    sess = tf.Session(config=config)
+    session = tf.Session(config=config)
 
     # Load weights
-    grasp_estimator.load_weights(sess, saver, checkpoint_dir, mode='test')
+    grasp_estimator.load_weights(session, saver, checkpoint_dir, mode='test')
 
     os.makedirs('results', exist_ok=True)
 
@@ -70,7 +70,7 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
                                                                                    skip_border_objects=skip_border_objects, z_range=z_range)
 
         print('Generating Grasps...')
-        pred_grasps_cam, scores, contact_pts, _ = grasp_estimator.predict_scene_grasps(sess, pc_full, pc_segments=pc_segments,
+        pred_grasps_cam, scores, contact_pts, _ = grasp_estimator.predict_scene_grasps(session, pc_full, pc_segments=pc_segments,
                                                                                        local_regions=local_regions, filter_grasps=filter_grasps, forward_passes=forward_passes)
 
         # Save results
@@ -107,8 +107,8 @@ if __name__ == "__main__":
                         help='When extracting local_regions, ignore segments at depth map boundary.')
     parser.add_argument('--forward_passes', type=int, default=1,
                         help='Run multiple parallel forward passes to gripper more potential contact points.')
-    parser.add_argument('--segmap_id', type=int, default=0,
-                        help='Only return grasps of the given object id')
+    # parser.add_argument('--segmap_id', type=int, default=0,
+    #                     help='Only return grasps of the given object id')
     parser.add_argument('--arg_configs', nargs="*", type=str,
                         default=[], help='overwrite config parameters')
     parser.add_argument(
@@ -122,5 +122,5 @@ if __name__ == "__main__":
     print('pid: %s' % (str(os.getpid())))
 
     inference(global_config, FLAGS.ckpt_dir, FLAGS.np_path if not FLAGS.png_path else FLAGS.png_path, z_range=eval(str(FLAGS.z_range)),
-              K=FLAGS.K, local_regions=FLAGS.local_regions, filter_grasps=FLAGS.filter_grasps, segmap_id=FLAGS.segmap_id,
+              K=FLAGS.K, local_regions=FLAGS.local_regions, filter_grasps=FLAGS.filter_grasps,
               forward_passes=FLAGS.forward_passes, skip_border_objects=FLAGS.skip_border_objects, gripper_name=FLAGS.gripper)

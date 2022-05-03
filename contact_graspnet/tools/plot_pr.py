@@ -51,7 +51,7 @@ def metric_coverage_success_rate(grasps_list, scores_list, flex_outcomes_list, g
         try:
             print(len(grasps_list[i]), len(
                 scores_list[i].reshape(-1)), len(flex_outcomes_list[i]))
-        except:
+        except Exception:
             import pdb
             pdb.set_trace()
         for g, s, f in zip(grasps_list[i], scores_list[i].reshape(-1), flex_outcomes_list[i]):
@@ -122,9 +122,10 @@ def metric_coverage_success_rate(grasps_list, scores_list, flex_outcomes_list, g
     return auc, {'precisions': precisions, 'recalls': recalls, 'auc': auc, 'cfg': None}
 
 
+npz_file = 'all_full_results.npz'
 # pr_data = glob2.glob(os.path.join(sys.argv[1],'*','*','outfile.npy')) + glob2.glob(os.path.join(sys.argv[1],'*','outfile.npy')) + glob2.glob(os.path.join(sys.argv[1],'outfile.npy'))
-pr_data = glob2.glob(os.path.join(sys.argv[1], '*', '*', 'all_full_results.npz')) + glob2.glob(os.path.join(
-    sys.argv[1], '*', 'all_full_results.npz')) + glob2.glob(os.path.join(sys.argv[1], 'all_full_results.npz'))
+pr_data = glob2.glob(os.path.join(sys.argv[1], '*', '*', npz_file)) + glob2.glob(os.path.join(
+    sys.argv[1], '*', npz_file)) + glob2.glob(os.path.join(sys.argv[1], npz_file))
 
 default_compare = True
 if default_compare:
@@ -149,31 +150,31 @@ for p in range(100):
 for abc in pr_data:
     try:
         x = np.load(os.path.join(os.path.dirname(abc), 'flex_temp',
-                    'all_full_results.npz'), allow_pickle=True)
-    except:
+                    npz_file), allow_pickle=True)
+    except Exception:
         x = np.load(os.path.join(os.path.dirname(os.path.dirname(abc)),
-                    'flex_temp', 'all_full_results.npz'), allow_pickle=True)
+                    'flex_temp', npz_file), allow_pickle=True)
 
     auc, _ = metric_coverage_success_rate(
         x['grasps'], x['scores'],  x['flex_outcomes'], gt_grasps, True)
-
+    npy_file = 'outfile.npy'
     base_dir = os.path.dirname(os.path.dirname(abc))
-    outfile_data = glob2.glob(os.path.join(base_dir, '*', '*', 'outfile.npy')) + glob2.glob(
-        os.path.join(base_dir, '*', 'outfile.npy')) + glob2.glob(os.path.join(base_dir, 'outfile.npy'))
+    outfile_data = glob2.glob(os.path.join(base_dir, '*', '*', npy_file)) + glob2.glob(
+        os.path.join(base_dir, '*', npy_file)) + glob2.glob(os.path.join(base_dir, npy_file))
 
     if outfile_data:
         d = outfile_data[0]
         print(d)
         a = np.load(d, allow_pickle=True).item()
 
-        if d.split('/')[2] == 'outfile.npy':
+        if d.split('/')[2] == npy_file:
             names = os.listdir(os.path.dirname(d))
             print(names)
             name = names[0]
         else:
             try:
                 name = d.split('/')[5]
-            except:
+            except Exception:
                 name = d.split('/')[4]
 
         print(50*'#')

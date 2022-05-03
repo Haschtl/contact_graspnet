@@ -45,7 +45,7 @@ def placeholder_inputs(batch_size, num_input_points=20000, input_normals=False):
     return pl_dict
 
 
-def get_bin_vals(global_config):
+def get_bin_values(global_config):
     """
     Creates bin values for grasping widths according to bounds defined in config
 
@@ -56,20 +56,20 @@ def get_bin_vals(global_config):
         tf.constant -- bin value tensor 
     """
     bins_bounds = np.array(global_config['DATA']['labels']['offset_bins'])
-    if global_config['TEST']['bin_vals'] == 'max':
-        bin_vals = (bins_bounds[1:] + bins_bounds[:-1])/2
-        bin_vals[-1] = bins_bounds[-1]
-    elif global_config['TEST']['bin_vals'] == 'mean':
-        bin_vals = bins_bounds[1:]
+    if global_config['TEST']['bin_values'] == 'max':
+        bin_values = (bins_bounds[1:] + bins_bounds[:-1])/2
+        bin_values[-1] = bins_bounds[-1]
+    elif global_config['TEST']['bin_values'] == 'mean':
+        bin_values = bins_bounds[1:]
     else:
         raise NotImplementedError
 
     if not global_config['TEST']['allow_zero_margin']:
-        bin_vals = np.minimum(
-            bin_vals, global_config['DATA']['gripper_width']-global_config['TEST']['extra_opening'])
+        bin_values = np.minimum(
+            bin_values, global_config['DATA']['gripper_width']-global_config['TEST']['extra_opening'])
 
-    tf_bin_vals = tf.constant(bin_vals, tf.float32)
-    return tf_bin_vals
+    tf_bin_values = tf.constant(bin_values, tf.float32)
+    return tf_bin_values
 
 
 def get_model(point_cloud, is_training, global_config, bn_decay=None):
@@ -310,9 +310,9 @@ def get_losses(pointclouds_pl, end_points, dir_labels_pc_cam, offset_labels_pc, 
 
     # ADS Gripper PC Loss
     if global_config['MODEL']['bin_offsets']:
-        thickness_pred = tf.gather_nd(get_bin_vals(global_config), tf.expand_dims(
+        thickness_pred = tf.gather_nd(get_bin_values(global_config), tf.expand_dims(
             tf.argmax(grasp_offset_head, axis=2), axis=2))
-        thickness_gt = tf.gather_nd(get_bin_vals(global_config), tf.expand_dims(
+        thickness_gt = tf.gather_nd(get_bin_values(global_config), tf.expand_dims(
             tf.argmax(offset_labels_pc, axis=2), axis=2))
     else:
         thickness_pred = grasp_offset_head[:, :, 0]
@@ -492,7 +492,7 @@ def compute_labels(pos_contact_pts_mesh, pos_contact_dirs_mesh, pos_contact_appr
         [dir_labels_pc_cam, offset_labels_pc, grasp_success_labels_pc, approach_labels_pc_cam] -- Per-point contact success labels and per-contact pose labels in rendered point cloud
     """
     label_config = global_config['DATA']['labels']
-    model_config = global_config['MODEL']
+    # model_config = global_config['MODEL']
 
     nsample = label_config['k']
     radius = label_config['max_radius']

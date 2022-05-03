@@ -62,12 +62,12 @@ class GraspEstimator:
         end_points = self._model_func.get_model(
             self.placeholders['pointclouds_pl'], self.placeholders['is_training_pl'], global_config, bn_decay=bn_decay)
 
-        tf_bin_vals = self._model_func.get_bin_vals(global_config)
-        offset_bin_pred_vals = tf.gather_nd(tf_bin_vals, tf.expand_dims(tf.argmax(
+        tf_bin_values = self._model_func.get_bin_values(global_config)
+        offset_bin_pred_values = tf.gather_nd(tf_bin_values, tf.expand_dims(tf.argmax(
             end_points['grasp_offset_head'], axis=2), axis=2)) if global_config['MODEL']['bin_offsets'] else end_points['grasp_offset_pred'][:, :, 0]
 
-        grasp_preds = self._model_func.build_6d_grasp(
-            end_points['approach_dir_head'], end_points['grasp_dir_head'], end_points['pred_points'], offset_bin_pred_vals, use_tf=True)  # b x num_point x 4 x 4
+        grasp_predictions = self._model_func.build_6d_grasp(
+            end_points['approach_dir_head'], end_points['grasp_dir_head'], end_points['pred_points'], offset_bin_pred_values, use_tf=True)  # b x num_point x 4 x 4
 
         self.model_ops = {'pointclouds_pl': self.placeholders['pointclouds_pl'],
                           'cam_poses_pl': self.placeholders['cam_poses_pl'],
@@ -81,45 +81,45 @@ class GraspEstimator:
                           'approach_dir_pred': end_points['approach_dir_head'],
                           'pred_points': end_points['pred_points'],
                           'offset_pred_idcs_pc': tf.argmax(end_points['grasp_offset_head'], axis=2) if global_config['MODEL']['bin_offsets'] else None,
-                          'offset_bin_pred_vals': offset_bin_pred_vals,
-                          'grasp_preds': grasp_preds,
+                          'offset_bin_pred_values': offset_bin_pred_values,
+                          'grasp_predictions': grasp_predictions,
                           'step': step,
                           'end_points': end_points}
 
-        self.inference_ops = [self.model_ops['grasp_preds'],
+        self.inference_ops = [self.model_ops['grasp_predictions'],
                               self.model_ops['binary_seg_pred'], self.model_ops['pred_points']]
-        if self.model_ops['offset_bin_pred_vals'] is None:
+        if self.model_ops['offset_bin_pred_values'] is None:
             self.inference_ops.append(self.model_ops['grasp_offset_head'])
         else:
-            self.inference_ops.append(self.model_ops['offset_bin_pred_vals'])
+            self.inference_ops.append(self.model_ops['offset_bin_pred_values'])
 
         return self.model_ops
 
-    def load_weights(self, sess, saver, log_dir, mode='test'):
+    def load_weights(self, session, saver, log_dir, mode='test'):
         """
         Load checkpoint weights
-        :param sess: tf.Session
+        :param session: tf.Session
         :param saver: tf.train.Saver        
         """
 
-        chkpt = tf.train.get_checkpoint_state(log_dir)
-        if chkpt and chkpt.model_checkpoint_path:
-            print(('loading ',  chkpt.model_checkpoint_path))
-            saver.restore(sess, chkpt.model_checkpoint_path)
+        checkpoint = tf.train.get_checkpoint_state(log_dir)
+        if checkpoint and checkpoint.model_checkpoint_path:
+            print(('loading ',  checkpoint.model_checkpoint_path))
+            saver.restore(session, checkpoint.model_checkpoint_path)
         else:
             if mode == 'test':
                 print('no checkpoint in ', log_dir)
                 exit()
             else:
-                sess.run(tf.global_variables_initializer())
+                session.run(tf.global_variables_initializer())
 
-    def filter_segment(self, contact_pts, segment_pc, thres=0.00001):
+    def filter_segment(self, contact_pts, segment_pc, threshold=0.00001):
         """
         Filter grasps to obtain contacts on specified point cloud segment
 
         :param contact_pts: Nx3 contact points of all grasps in the scene
         :param segment_pc: Mx3 segmented point cloud of the object of interest
-        :param thres: maximum distance in m of filtered contact points from segmented point cloud
+        :param threshold: maximum distance in m of filtered contact points from segmented point cloud
         :returns: Contact/Grasp indices that lie in the point cloud segment
         """
         filtered_grasp_idcs = np.array([], dtype=np.int32)
@@ -129,8 +129,8 @@ class GraspEstimator:
                 dists = contact_pts[:,
                                     :3].reshape(-1, 1, 3) - segment_pc.reshape(1, -1, 3)
                 min_dists = np.min(np.linalg.norm(dists, axis=2), axis=1)
-                filtered_grasp_idcs = np.where(min_dists < thres)
-            except:
+                filtered_grasp_idcs = np.where(min_dists < threshold)
+            except Exception:
                 pass
 
         return filtered_grasp_idcs
@@ -175,11 +175,11 @@ class GraspEstimator:
 
         return pc_regions, obj_centers
 
-    def predict_grasps(self, sess, pc, constant_offset=False, convert_cam_coords=True, forward_passes=1):
+    def predict_grasps(self, session, pc, constant_offset=False, convert_cam_coords=True, forward_passes=1):
         """
         Predict raw grasps on point cloud
 
-        :param sess: tf.Session
+        :param session: tf.Session
         :param pc: Nx3 point cloud in camera coordinates
         :param convert_cam_coords: Convert from OpenCV to internal training camera coordinates (x left, y up, z front) and converts grasps back to openCV coordinates
         :param constant_offset: do not predict offset and place gripper at constant `extra_opening` distance from contact point
@@ -201,7 +201,7 @@ class GraspEstimator:
                      self.placeholders['is_training_pl']: False}
 
         # Run model inference
-        pred_grasps_cam, pred_scores, pred_points, offset_pred = sess.run(
+        pred_grasps_cam, pred_scores, pred_points, offset_pred = session.run(
             self.inference_ops, feed_dict=feed_dict)
 
         pred_grasps_cam = pred_grasps_cam.reshape(
@@ -210,7 +210,7 @@ class GraspEstimator:
         pred_scores = pred_scores.reshape(-1)
         offset_pred = offset_pred.reshape(-1)
 
-        # uncenter grasps
+        # un-center grasps
         pred_grasps_cam[:, :3, 3] += pc_mean.reshape(-1, 3)
         pred_points[:, :3] += pc_mean.reshape(-1, 3)
 
@@ -221,8 +221,8 @@ class GraspEstimator:
         gripper_openings = np.minimum(
             offset_pred + self._contact_grasp_cfg['TEST']['extra_opening'], self._contact_grasp_cfg['DATA']['gripper_width'])
 
-        with_replacement = self._contact_grasp_cfg['TEST'][
-            'with_replacement'] if 'with_replacement' in self._contact_grasp_cfg['TEST'] else False
+        # with_replacement = self._contact_grasp_cfg['TEST'][
+        #     'with_replacement'] if 'with_replacement' in self._contact_grasp_cfg['TEST'] else False
 
         selection_idcs = self.select_grasps(pred_points[:, :3], pred_scores,
                                             self._contact_grasp_cfg['TEST']['max_farthest_points'],
@@ -246,12 +246,12 @@ class GraspEstimator:
 
         return pred_grasps_cam[selection_idcs], pred_scores[selection_idcs], pred_points[selection_idcs].squeeze(), gripper_openings[selection_idcs].squeeze()
 
-    def predict_scene_grasps(self, sess, pc_full, pc_segments={}, local_regions=False, filter_grasps=False, forward_passes=1):
+    def predict_scene_grasps(self, session, pc_full, pc_segments={}, local_regions=False, filter_grasps=False, forward_passes=1):
         """
         Predict num_point grasps on a full point cloud or in local box regions around point cloud segments.
 
         Arguments:
-            sess {tf.Session} -- Tensorflow Session
+            session {tf.Session} -- Tensorflow Session
             pc_full {np.ndarray} -- Nx3 full scene point cloud  
 
         Keyword Arguments:
@@ -271,12 +271,12 @@ class GraspEstimator:
             pc_regions, _ = self.extract_3d_cam_boxes(pc_full, pc_segments)
             for k, pc_region in pc_regions.items():
                 pred_grasps_cam[k], scores[k], contact_pts[k], gripper_openings[k] = self.predict_grasps(
-                    sess, pc_region, convert_cam_coords=True, forward_passes=forward_passes)
+                    session, pc_region, convert_cam_coords=True, forward_passes=forward_passes)
         else:
             pc_full = regularize_pc_point_count(
                 pc_full, self._contact_grasp_cfg['DATA']['raw_num_points'])
             pred_grasps_cam[-1], scores[-1], contact_pts[-1], gripper_openings[-1] = self.predict_grasps(
-                sess, pc_full, convert_cam_coords=True, forward_passes=forward_passes)
+                session, pc_full, convert_cam_coords=True, forward_passes=forward_passes)
             print('Generated {} grasps'.format(len(pred_grasps_cam[-1])))
 
         # Filter grasp contacts to lie within object segment
@@ -286,14 +286,14 @@ class GraspEstimator:
                 j = k if local_regions else -1
                 if np.any(pc_segments[k]) and np.any(contact_pts[j]):
                     segment_idcs = self.filter_segment(
-                        contact_pts[j], pc_segments[k], thres=self._contact_grasp_cfg['TEST']['filter_thres'])
+                        contact_pts[j], pc_segments[k], threshold=self._contact_grasp_cfg['TEST']['filter_thres'])
 
                     pred_grasps_cam[k] = pred_grasps_cam[j][segment_idcs]
                     scores[k] = scores[j][segment_idcs]
                     contact_pts[k] = contact_pts[j][segment_idcs]
                     try:
                         gripper_openings[k] = gripper_openings[j][segment_idcs]
-                    except:
+                    except Exception:
                         print('skipped gripper openings {}'.format(
                             gripper_openings[j]))
 
@@ -404,7 +404,7 @@ class GraspEstimator:
             obj_instances = [segmap_id] if segmap_id else np.unique(
                 segmap[segmap > 0])
             for i in obj_instances:
-                if skip_border_objects and not i == segmap_id:
+                if skip_border_objects and i != segmap_id:
                     obj_i_y, obj_i_x = np.where(segmap == i)
                     if np.any(obj_i_x < margin_px) or np.any(obj_i_x > segmap.shape[1]-margin_px) or np.any(obj_i_y < margin_px) or np.any(obj_i_y > segmap.shape[0]-margin_px):
                         print(
@@ -418,10 +418,10 @@ class GraspEstimator:
 
         return pc_full, pc_segments, pc_colors
 
-    def predict_scene_grasps_from_depth_K_and_2d_seg(self, sess, depth, segmap, K, z_range=[0.2, 1.8], local_regions=False, filter_grasps=False, segmap_id=0, skip_border_objects=False, margin_px=5, rgb=None, forward_passes=1):
+    def predict_scene_grasps_from_depth_K_and_2d_seg(self, session, depth, segmap, K, z_range=[0.2, 1.8], local_regions=False, filter_grasps=False, segmap_id=0, skip_border_objects=False, margin_px=5, rgb=None, forward_passes=1):
         """ Combines converting to point cloud(s) and predicting scene grasps into one function """
 
         pc_full, pc_segments = self.extract_point_clouds(
             depth, K, segmap=segmap, segmap_id=segmap_id, skip_border_objects=skip_border_objects, margin_px=margin_px, z_range=z_range, rgb=rgb)
 
-        return self.predict_scene_grasps(sess, pc_full, pc_segments, local_regions=local_regions, filter_grasps=filter_grasps, forward_passes=forward_passes)
+        return self.predict_scene_grasps(session, pc_full, pc_segments, local_regions=local_regions, filter_grasps=filter_grasps, forward_passes=forward_passes)

@@ -48,7 +48,7 @@ def load_scene_contacts(dataset_folder, test_split_only=False, num_test=None, sc
                             'obj_scales': npz['obj_scales'],
                             'grasp_transforms': npz['grasp_transforms']}
             contact_infos.append(contact_info)
-        except:
+        except Exception:
             print('corrupt, ignoring..')
     return contact_infos
 

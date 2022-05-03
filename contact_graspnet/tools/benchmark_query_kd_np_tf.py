@@ -100,6 +100,6 @@ print('kd: ', np.mean(kd_build_time) + np.mean(kd_query_time))
 # tf_brute_force_knn_with_dist_thres: 0.0009593963623046875 (N=1024, k =20, radius=0.1)
 # ckdtree_time_total: 0.00626897811889648 (N=1024, k =20)
 # Notes:
-# 1.) queury ball + sampling is different than knn + dist thres, but for our disjoint sets we should use the latter.
+# 1.) queury ball + sampling is different than knn + dist threshold, but for our disjoint sets we should use the latter.
 # 2.) If you import the cuda kernels, the tf_brute_force knn becomes 3x slower (0.0024s). That means that the cu kernels also change the tf behavior in different parts of the code.
 # 3.) When the pointnet guys created their repo, tf had no gpu implementation of some functions like tf.math.top_k(). Now they have, and it seems to be faster.

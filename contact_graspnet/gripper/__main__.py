@@ -28,7 +28,7 @@ def create_gripper(name, configuration=None, root_folder=os.path.dirname(os.path
     if name.lower() == 'david-simple':
         return DavidSimpleGripper(q=configuration, root_folder=root_folder)
     else:
-        raise Exception("Unknown gripper: {}".format(name))
+        raise FileNotFoundError("Unknown gripper: {}".format(name))
 
 
 def in_collision_with_gripper(object_mesh, gripper_transforms, gripper_name, silent=False):

@@ -90,42 +90,42 @@ def train(global_config, log_dir, gripper_name="panda"):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.allow_soft_placement = True
-        sess = tf.Session(config=config)
+        session = tf.Session(config=config)
 
         # Log summaries
-        summary_ops = build_summary_ops(ops, sess, global_config)
+        summary_ops = build_summary_ops(ops, session, global_config)
 
         # Init/Load weights
-        grasp_estimator.load_weights(sess, saver, log_dir, mode='train')
+        grasp_estimator.load_weights(session, saver, log_dir, mode='train')
 
-        # sess = tf_debug.LocalCLIDebugWrapperSession(sess)
-        # sess.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
-        file_writers = build_file_writers(sess, log_dir)
+        # session = tf_debug.LocalCLIDebugWrapperSession(session)
+        # session.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
+        file_writers = build_file_writers(log_dir)
 
     # define: epoch = arbitrary number of views of every training scene
-    cur_epoch = sess.run(ops['step']) // num_train_samples
+    cur_epoch = session.run(ops['step']) // num_train_samples
     for epoch in range(cur_epoch, global_config['OPTIMIZER']['max_epoch']):
         log_string('**** EPOCH %03d ****' % (epoch))
 
-        sess.run(ops['iterator'].initializer)
+        session.run(ops['iterator'].initializer)
         epoch_time = time.time()
-        step = train_one_epoch(sess, ops, summary_ops, file_writers, pcreader)
+        step = train_one_epoch(session, ops, summary_ops, file_writers, pcreader)
         log_string('trained epoch {} in: {}'.format(
             epoch, time.time()-epoch_time))
 
         # Save the variables to disk.
-        save_path = saver.save(sess, os.path.join(
+        save_path = saver.save(session, os.path.join(
             log_dir, "model.ckpt"), global_step=step, write_meta_graph=False)
         log_string("Model saved in file: %s" % save_path)
 
         if num_test_samples > 0:
             eval_time = time.time()
             eval_validation_scenes(
-                sess, ops, summary_ops, file_writers, pcreader)
+                session, ops, summary_ops, file_writers, pcreader)
             log_string('evaluation time: {}'.format(time.time()-eval_time))
 
 
-def train_one_epoch(sess, ops, summary_ops, file_writers, pcreader):
+def train_one_epoch(session, ops, summary_ops, file_writers, pcreader):
     """ ops: dict mapping from string to tf ops """
 
     log_string(str(datetime.now()))
@@ -144,7 +144,7 @@ def train_one_epoch(sess, ops, summary_ops, file_writers, pcreader):
                      ops['scene_idx_pl']: scene_idx, ops['is_training_pl']: True}
 
         step, summary, _, loss_val, dir_loss, bin_ce_loss, \
-            offset_loss, approach_loss, adds_loss, adds_gt2pred_loss, scene_idx = sess.run([ops['step'], summary_ops['merged'], ops['train_op'], ops['loss'], ops['dir_loss'],
+            offset_loss, approach_loss, adds_loss, adds_gt2pred_loss, scene_idx = session.run([ops['step'], summary_ops['merged'], ops['train_op'], ops['loss'], ops['dir_loss'],
                                                                                             ops['bin_ce_loss'], ops['offset_loss'], ops[
                                                                                             'approach_loss'], ops['adds_loss'],
                                                                                             ops['adds_gt2pred_loss'], ops['scene_idx']], feed_dict=feed_dict)
@@ -164,14 +164,14 @@ def train_one_epoch(sess, ops, summary_ops, file_writers, pcreader):
     return step
 
 
-def eval_validation_scenes(sess, ops, summary_ops, file_writers, pcreader, max_eval_objects=500):
+def eval_validation_scenes(session, ops, summary_ops, file_writers, pcreader, max_eval_objects=500):
     """ ops: dict mapping from string to tf ops """
-    is_training = False
+    # is_training = False
     log_string(str(datetime.now()))
     loss_log = np.zeros((min(pcreader._num_test_samples, max_eval_objects), 7))
 
     # resets accumulation of pr and auc data
-    sess.run(summary_ops['pr_reset_op'])
+    session.run(summary_ops['pr_reset_op'])
 
     for batch_idx in np.arange(min(pcreader._num_test_samples, max_eval_objects)):
 
@@ -184,7 +184,7 @@ def eval_validation_scenes(sess, ops, summary_ops, file_writers, pcreader, max_e
         feed_dict = {ops['pointclouds_pl']: batch_data, ops['cam_poses_pl']: cam_poses,
                      ops['scene_idx_pl']: scene_idx, ops['is_training_pl']: False}
 
-        scene_idx, step, loss_val, dir_loss, bin_ce_loss, offset_loss, approach_loss, adds_loss, adds_gt2pred_loss, pr_summary, _, _, _ = sess.run([ops['scene_idx'], ops['step'], ops['loss'], ops['dir_loss'], ops['bin_ce_loss'],
+        scene_idx, step, loss_val, dir_loss, bin_ce_loss, offset_loss, approach_loss, adds_loss, adds_gt2pred_loss, pr_summary, _, _, _ = session.run([ops['scene_idx'], ops['step'], ops['loss'], ops['dir_loss'], ops['bin_ce_loss'],
                                                                                                                                                    ops['offset_loss'], ops['approach_loss'], ops[
             'adds_loss'], ops['adds_gt2pred_loss'],
             summary_ops['merged_eval'], summary_ops[

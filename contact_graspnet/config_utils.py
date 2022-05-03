@@ -36,9 +36,10 @@ def load_config(checkpoint_dir, batch_size=None, max_epoch=None, data_path=None,
         [dict] -- Config
     """
 
-    config_path = os.path.join(checkpoint_dir, 'config.yaml')
+    config_filename = 'config.yaml'
+    config_path = os.path.join(checkpoint_dir, config_filename)
     config_path = config_path if os.path.exists(config_path) else os.path.join(
-        os.path.dirname(__file__), 'config.yaml')
+        os.path.dirname(__file__), config_filename)
     with open(config_path, 'r') as f:
         global_config = yaml.load(f)
 
@@ -46,7 +47,7 @@ def load_config(checkpoint_dir, batch_size=None, max_epoch=None, data_path=None,
         k_str, v = conf.split(':')
         try:
             v = eval(v)
-        except:
+        except Exception:
             pass
         ks = [int(k) if k.isdigit() else k for k in k_str.split('.')]
 
@@ -62,7 +63,7 @@ def load_config(checkpoint_dir, batch_size=None, max_epoch=None, data_path=None,
     global_config['DATA']['classes'] = None
 
     if save:
-        with open(os.path.join(checkpoint_dir, 'config.yaml'), 'w') as f:
+        with open(os.path.join(checkpoint_dir, config_filename), 'w') as f:
             yaml.dump(global_config, f)
 
     return global_config

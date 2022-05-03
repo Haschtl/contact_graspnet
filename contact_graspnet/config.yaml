@@ -177,7 +177,7 @@ TEST:
   first_thres: 0.23
   second_thres: 0.19
   allow_zero_margin: 0
-  bin_vals: max
+  bin_values: max
   center_to_tip: 0.0
   extra_opening: 0.005
   max_farthest_points: 150
