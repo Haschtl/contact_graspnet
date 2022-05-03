@@ -15,8 +15,8 @@ dependencies:
   - clangdev=10.0.1=default_hb85057a_2
   - clangxx=10.0.1=default_hb85057a_2
   - configobj=5.0.6=py37_1
-  - cudatoolkit=10.1.243=h6bb024c_0
-  - cudnn=7.6.0=cuda10.1_0
+  - cudatoolkit=11.1
+  - cudnn=8
   - curl=7.71.1=hbc83047_1
   - cycler=0.10.0=py37_0
   - dbus=1.13.18=hb2f20db_0
@@ -142,7 +142,7 @@ dependencies:
     - tensorboard==2.2.2
     - tensorboard-plugin-wit==1.7.0
     - tensorflow-estimator==2.2.0
-    - tensorflow-gpu==2.2.0
+    - tensorflow-gpu==2.5.0
     - termcolor==1.1.0
     - urllib3==1.25.11
     - werkzeug==1.0.1
