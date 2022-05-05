@@ -243,7 +243,7 @@ def depth2pc(depth, K, rgb=None):
     return (pc, rgb)
 
 
-def estimate_normals_cam_from_pc(self, pc_cam, max_radius=0.05, k=12):
+def estimate_normals_cam_from_pc(pc_cam, max_radius=0.05, k=12):
     """
     Estimates normals in camera coords from given point cloud.
 
@@ -695,7 +695,7 @@ class PointCloudReader:
         pc = self._augment_pc(pc)
 
         pc_normals = estimate_normals_cam_from_pc(
-            pc[:, :3], raw_num_points=self._raw_num_points) if estimate_normals else []
+            pc[:, :3]) if estimate_normals else []
 
         return pc, pc_normals, camera_pose, depth
 
