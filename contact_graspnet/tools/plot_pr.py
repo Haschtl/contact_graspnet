@@ -1,14 +1,53 @@
 from scipy import spatial
-from color import color
 import copy
 import utilities
 import numpy as np
+from easydict import EasyDict as edict
+import copy
 import matplotlib.pyplot as plt
-from dict_diff import findDiff
 import sys
 import glob2
 import os
 sys.path.append('/home/msundermeyer/ngc_ws/6dof-graspnet/contact_graspnet')
+
+
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
+def findDiff(d1, d2, path="", diff_dict={}):
+    orig_path = copy.deepcopy(path)
+    for k in d1.keys():
+        if not d2.has_key(k):
+            print(path, ":")
+            print("keys not in d2: " + k, "\n")
+        else:
+            if type(d1[k]) in [edict, dict]:
+                if path == "":
+                    path = k
+                else:
+                    path = path + "->" + k
+                diff_dict = findDiff(d1[k], d2[k], path, diff_dict)
+                path = orig_path
+            else:
+                if d1[k] != d2[k]:
+                    print(path, ":")
+                    print(" - ", k, " : ", d1[k])
+                    print(" + ", k, " : ", d2[k])
+                    diff_dict[k] = d2[k]
+                    diff_dict[k + '_dictpath'] = copy.deepcopy(path)
+                    # path=""
+
+    return diff_dict
 
 
 def metric_coverage_success_rate(grasps_list, scores_list, flex_outcomes_list, gt_grasps_list, visualize, num_scenes=100):

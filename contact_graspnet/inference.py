@@ -1,7 +1,8 @@
-from .tools.visualization_utils import visualize_grasps, show_image
+from .util.segmap import show_image
 from .contact_grasp_estimator import GraspEstimator
 from .data import load_available_input_data
 from . import config_utils
+from .gripper.__main__ import create_gripper
 import os
 import sys
 import argparse
@@ -79,7 +80,8 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
 
         # Visualize results
         show_image(rgb, segmap)
-        visualize_grasps(gripper_name, pc_full, pred_grasps_cam,
+        gripper=create_gripper(gripper_name)
+        gripper.visualize_grasps(pc_full, pred_grasps_cam,
                          scores, plot_opencv_cam=True, pc_colors=pc_colors)
 
     if not glob.glob(input_paths):

@@ -494,7 +494,7 @@ if __name__ == "__main__":
     parser.add_argument('--splits', '--list', nargs='+')
     parser.add_argument('--max_iterations', type=int, default=100)
     parser.add_argument('--gripper_path', type=str,
-                        default='contact_graspnet/gripper/panda/panda_gripper.obj')
+                        default='contact_graspnet/gripper/panda/gripper.obj')
     parser.add_argument('--min_num_objects', type=int, default=8)
     parser.add_argument('--max_num_objects', type=int, default=12)
     parser.add_argument('--start_index', type=int, default=0)

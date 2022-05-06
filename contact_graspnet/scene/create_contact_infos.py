@@ -1,4 +1,4 @@
-from ..gripper.__main__ import in_collision_with_gripper, grasp_contact_location
+from ..gripper.__main__ import create_gripper
 from ..data import PointCloudReader
 import os
 import numpy as np
@@ -11,13 +11,13 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(ROOT_DIR)
 
 
-def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, gripper_name, check_collisions=True):
+def grasps_contact_info(grasp_tfs, successfulls, obj_mesh, gripper_name, check_collisions=True):
     """
     Check the collision of the grasps and compute contact points, normals and directions
 
     Arguments:
         grasp_tfs {np.ndarray} -- Mx4x4 grasp transformations
-        successfuls {np.ndarray} -- Binary Mx1 successful grasps
+        successfulls {np.ndarray} -- Binary Mx1 successful grasps
         gripper_name {str} -- Name of the gripper to use
         obj_mesh {trimesh.base.Trimesh} -- Mesh of the object
 
@@ -28,17 +28,18 @@ def grasps_contact_info(grasp_tfs, successfuls, obj_mesh, gripper_name, check_co
         [dict] -- object contact dictionary with all necessary information
     """
     print('evaluating {} grasps'.format(len(grasp_tfs)))
+    gripper=create_gripper(gripper_name)
     if check_collisions:
-        collisions, _ = in_collision_with_gripper(
+        collisions, _ = gripper.in_collision_with_gripper(
             obj_mesh,
             grasp_tfs,
             gripper_name=gripper_name,
             silent=True,
         )
-    contact_dicts = grasp_contact_location(
+    contact_dicts = gripper.grasp_contact_location(
         grasp_tfs,
-        successfuls,
-        collisions if check_collisions else [0]*len(successfuls),
+        successfulls,
+        collisions if check_collisions else [0]*len(successfulls),
         object_mesh=obj_mesh,
         gripper_name=gripper_name,
         silent=True,
