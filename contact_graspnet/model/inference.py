@@ -1,8 +1,8 @@
-from .util.segmap import show_image
+from ..util.segmap import show_image
+from ..gripper.__main__ import create_gripper
 from .contact_grasp_estimator import GraspEstimator
 from .data import load_available_input_data
 from . import config_utils
-from .gripper.__main__ import create_gripper
 import os
 import sys
 import argparse
@@ -88,8 +88,7 @@ def inference(global_config, checkpoint_dir, input_paths, K=None, local_regions=
         print('No files found: ', input_paths)
 
 
-if __name__ == "__main__":
-
+def commandline():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ckpt_dir', default='checkpoints/scene_test_2048_bs3_hor_sigma_001',
                         help='Log dir [default: checkpoints/scene_test_2048_bs3_hor_sigma_001]')
@@ -115,7 +114,7 @@ if __name__ == "__main__":
                         default=[], help='overwrite config parameters')
     parser.add_argument(
         '--gripper', help='Gripper-name, e.g. "panda"', type=str, default="panda")
-    FLAGS = parser.parse_args()
+    FLAGS, _ = parser.parse_known_args()
 
     global_config = config_utils.load_config(
         FLAGS.ckpt_dir, batch_size=FLAGS.forward_passes, arg_configs=FLAGS.arg_configs)
@@ -126,3 +125,7 @@ if __name__ == "__main__":
     inference(global_config, FLAGS.ckpt_dir, FLAGS.np_path if not FLAGS.png_path else FLAGS.png_path, z_range=eval(str(FLAGS.z_range)),
               K=FLAGS.K, local_regions=FLAGS.local_regions, filter_grasps=FLAGS.filter_grasps,
               forward_passes=FLAGS.forward_passes, skip_border_objects=FLAGS.skip_border_objects, gripper_name=FLAGS.gripper)
+
+
+if __name__ == "__main__":
+    commandline()

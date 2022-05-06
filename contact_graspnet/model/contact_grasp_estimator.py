@@ -1,4 +1,5 @@
-from .data import farthest_points, distance_by_translation_point, preprocess_pc_for_inference, regularize_pc_point_count, depth2pc, reject_median_outliers
+from ..util.geometry import farthest_points, distance_by_translation_point, reject_median_outliers
+from ..pointcloud.tools import preprocess_pc_for_inference, regularize_pc_point_count, depth2pc
 from . import config_utils
 from .tf_train_ops import get_bn_decay
 import importlib

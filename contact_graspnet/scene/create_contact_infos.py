@@ -1,5 +1,5 @@
 from ..gripper.__main__ import create_gripper
-from ..data import PointCloudReader
+from ..pointcloud.pointcloud_reader import PointCloudReader
 import os
 import numpy as np
 import h5py
@@ -120,13 +120,13 @@ def save_contact_data(pcreader, grasp_path, gripper_name, target_path='mesh_cont
     np.savez(contact_dir_path, **contact_dict_of_arrays)
 
 
-if __name__ == '__main__':
+def commandline():
     parser = argparse.ArgumentParser(description="Grasp data reader")
     parser.add_argument(
         'root_folder', help='Root dir with acronym grasps, meshes and splits', type=str)
     parser.add_argument(
         '--gripper', help='Gripper-name, e.g. "panda"', type=str, default="panda")
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     print('Root folder', args.root_folder)
 
     pcreader = PointCloudReader(root_folder=args.root_folder)
@@ -137,3 +137,7 @@ if __name__ == '__main__':
     for grasp_path in grasp_paths:
         print('Reading: ', grasp_path)
         save_contact_data(pcreader, grasp_path, args.gripper)
+
+
+if __name__ == '__main__':
+    commandline()

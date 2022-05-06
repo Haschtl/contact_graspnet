@@ -41,7 +41,7 @@ def load_config(checkpoint_dir, batch_size=None, max_epoch=None, data_path=None,
     config_path = config_path if os.path.exists(config_path) else os.path.join(
         os.path.dirname(__file__), config_filename)
     with open(config_path, 'r') as f:
-        global_config = yaml.load(f)
+        global_config = yaml.safe_load(f)
 
     for conf in arg_configs:
         k_str, v = conf.split(':')

@@ -1,4 +1,4 @@
-from .gripper.__main__ import create_gripper
+from ..gripper.__main__ import create_gripper
 import os
 import sys
 import numpy as np

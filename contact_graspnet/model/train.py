@@ -1,8 +1,12 @@
+
+from ..pointcloud.pointcloud_reader import PointCloudReader
+from ..pointcloud.tools import center_pc_convert_cam
 from .contact_grasp_estimator import GraspEstimator
 from .tf_train_ops import load_labels_and_losses, build_train_op
 from .summaries import build_summary_ops, build_file_writers
-from .data import PointCloudReader, load_scene_contacts, center_pc_convert_cam
+from .data import load_scene_contacts
 from . import config_utils
+
 import tensorflow.compat.v1 as tf
 import os
 import sys
@@ -10,6 +14,7 @@ import argparse
 from datetime import datetime
 import numpy as np
 import time
+
 
 CONTACT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -201,8 +206,7 @@ def eval_validation_scenes(session, ops, summary_ops, file_writers, pcreader, ma
     return step
 
 
-if __name__ == "__main__":
-
+def commandline():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--ckpt_dir', default='checkpoints/contact_graspnet', help='Checkpoint dir')
@@ -216,8 +220,7 @@ if __name__ == "__main__":
                         default=[], help='overwrite config parameters')
     parser.add_argument(
         '--gripper', help='Gripper-name, e.g. "panda"', type=str, default="panda")
-    FLAGS = parser.parse_args()
-
+    FLAGS, _ = parser.parse_known_args()
     ckpt_dir = FLAGS.ckpt_dir
     if not os.path.exists(ckpt_dir):
         if not os.path.exists(os.path.dirname(ckpt_dir)):
@@ -248,3 +251,7 @@ if __name__ == "__main__":
     train(global_config, ckpt_dir, gripper_name=FLAGS.gripper)
 
     LOG_FOUT.close()
+
+
+if __name__ == "__main__":
+    commandline()

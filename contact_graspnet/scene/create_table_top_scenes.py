@@ -485,8 +485,7 @@ class TableScene(Scene):
         ).show()
 
 
-if __name__ == "__main__":
-
+def commandline():
     parser = argparse.ArgumentParser(description="Grasp data reader")
     parser.add_argument(
         'root_folder', help='Root dir with grasps, meshes, mesh_contacts and splits', type=str)
@@ -501,7 +500,7 @@ if __name__ == "__main__":
     parser.add_argument('--load_existing', type=str, default=None)
     parser.add_argument('--output_dir', type=str, default='scene_contacts')
     parser.add_argument('-vis', action='store_true', default=False)
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     root_folder = args.root_folder
     splits = args.splits if args.splits else ['train']
@@ -541,3 +540,7 @@ if __name__ == "__main__":
         if visualize:
             table_scene.visualize(scene_grasps, scene_contacts)
             table_scene._scene_count += 1
+
+
+if __name__ == "__main__":
+    commandline()

@@ -4,18 +4,18 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--create-object-dataset',
-                        help='Create object dataset like acronym for a gripper based on the ShapeNet dataset')
-    parser.add_argument('--create-contact-infos',
-                        help='Create contact infos for a gripper based on the acronym dataset')
-    parser.add_argument('--create-table-top-scenes',
-                        help='Generate scenes for a gripper with objects from the acronym dataset')
-    parser.add_argument('--train',
-                        help='Train the model')
-    parser.add_argument('--inference',
-                        help='Inference')
+    parser.add_argument('-cod', '--create-object-dataset',
+                        help='Create object dataset like acronym for a gripper based on the ShapeNet dataset', action='store_true')
+    parser.add_argument('-cci', '--create-contact-infos',
+                        help='Create contact infos for a gripper based on the acronym dataset', action='store_true')
+    parser.add_argument('-ctts', '--create-table-top-scenes',
+                        help='Generate scenes for a gripper with objects from the acronym dataset', action='store_true')
+    parser.add_argument('-t', '--train',
+                        help='Train the model', action='store_true')
+    parser.add_argument('-i', '--inference',
+                        help='Inference', action='store_true')
     parser.add_argument('--test',
-                        help='Test script')
+                        help='Test script', action='store_true')
     return parser.parse_args()
 
 
@@ -29,22 +29,36 @@ def test():
 
 
 def create_object_dataset():
-    print("""python tools/create_object?dataset.py /path/to/shapenet""")
+    print("""python tools/create_object_dataset.py /path/to/shapenet""")
+
 
 def create_contact_infos():
     print("""python tools/create_contact_infos.py /path/to/acronym""")
+    from .scene.create_contact_infos import commandline as cci
+    cci()
+
 
 def create_table_top_scenes():
     print("""python tools/create_table_top_scenes.py /path/to/acronym""")
+    from .scene.create_table_top_scenes import commandline as ctts
+    ctts()
+
 
 def inference():
     print("""python contact_graspnet/inference.py \
     --np_path=test_data/*.npy \
     --local_regions --filter_grasps""")
+    from .model.inference import commandline as inf
+    inf()
+
 
 def train():
     print("""python contact_graspnet/train.py --ckpt_dir checkpoints/your_model_name \
                                  --data_path /path/to/acronym/data""")
+    from .model.train import commandline as tr
+    tr()
+
+
 if __name__ == "__main__":
     args = parse_args()
     if args.inference:
